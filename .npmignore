@@ -1,0 +1,7 @@
+/.idea
+/yarn.lock
+/output.js
+/yarn.lock
+/dist
+/node_modules
+/.DS_Store
