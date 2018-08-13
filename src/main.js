@@ -2,17 +2,15 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import Cesium from 'cesium/Cesium'
-// noinspection ES6UnusedImports
-import widget from 'cesium/Widgets/widgets.css'
-
+import iView from 'iview'
+import 'iview/dist/styles/iview.css'
+import http from './axios/http'
+Vue.prototype.$http = http
 Vue.config.productionTip = false
-
+Vue.use(iView)
 new Vue({
   router,
   store,
-  render: h => h(App),
-  mounted () {
-    var viewer = new Cesium.Viewer('cesiumContainer')
-  }
+  render: h => h(App)
+
 }).$mount('#app')

@@ -3,6 +3,10 @@ module.exports = {
   env: {
     node: true
   },
+  // 去除开发模式中 报 api 未定义的问题
+  globals: {
+    api: false
+  },
   'extends': [
     'plugin:vue/essential',
     '@vue/standard'
