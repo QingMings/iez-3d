@@ -1,6 +1,7 @@
 <template>
     <div id="cesiumContainer">
         <ToolBar></ToolBar>
+        <!--<ToolBarR></ToolBarR>-->
     </div>
 </template>
 
@@ -8,8 +9,8 @@
 import Iez3d from '../iez3d'
 // noinspection ES6UnusedImports
 import 'cesium/Widgets/widgets.css'
-import ToolBar from './widget/toolBar/ToolBar'
 import LocalGeocoder from '../utils/LocalGeocoder'
+import ToolBar from './widget/toolBar/ToolBar'
 
 var iez3d
 export default {
@@ -27,6 +28,8 @@ export default {
   mounted () {
     iez3d = new Iez3d({
       container: 'cesiumContainer',
+      debug: true,
+      vue: this,
       viewerOptions: {
         timeline: false,
         baseLayerPicker: false,

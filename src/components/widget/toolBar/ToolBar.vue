@@ -1,5 +1,5 @@
 <template>
-    <div id="ToolBar" class="iez-toolbar">
+    <div id="ToolBar" class="iez-toolbar-left">
         <div class="iez-buttons">
             <!--图层管理按钮-->
             <Button shape="circle" title="图层管理" class="ivu-btn-circle ivu-btn-icon-only">
@@ -8,7 +8,7 @@
             <Button shape="circle" title="底图设置" class="ivu-btn-circle ivu-btn-icon-only">
                 <Icon type="ios-map"/>
             </Button>
-            <div ref="dropDownWapper" class="dropDownWapper">
+            <div ref="dropDownwrapper" class="dropDownwrapper">
                 <Dropdown  trigger="custom" :visible="visible" placement="bottom-start">
                     <Button shape="circle" title="常用工具" @click="dropDownHandler"
                             class="ivu-btn-circle ivu-btn-icon-only">
@@ -43,7 +43,7 @@ export default {
       this.visible = !this.visible
     },
     dropDownCloseSupport: function (e) {
-      if (!this.$refs.dropDownWapper.contains(e.target)) {
+      if (!this.$refs.dropDownwrapper.contains(e.target)) {
         this.visible = false
       }
     }
@@ -52,5 +52,5 @@ export default {
 }
 </script>
 <style lang="less">
-    @import "../../../assets/iez-toolbar";
+    @import "../../../assets/iez-toolbar-left";
 </style>

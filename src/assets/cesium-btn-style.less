@@ -1,0 +1,55 @@
+// cesium button 样式
+.cesium-btn-style() {
+  display: inline-block;
+  position: relative;
+  margin: 2px 2px;
+  &:hover {
+    color: #ffffff;
+    fill: #ffffff;
+    background: #48b;
+    border-color: #aef;
+    box-shadow: 0 0 8px #ffffff;
+  }
+  &:active {
+    color: #000000;
+    fill: #000000;
+    background: #adf;
+    border-color: #ffffff;
+    box-shadow: 0 0 8px #ffffff;
+  }
+  &:focus {
+    border-color: #ea4;
+    outline: none;
+  }
+}
+
+// 下拉菜单
+.iez-dropMenu-style {
+  border-left: 1px solid rgba(2, 2, 2, 0.4);
+  color: #ffffff;
+  // 鼠标悬浮
+  &:hover {
+    background: rgba(2, 2, 2, 0.4);
+    border-left: 1px solid #ea4;
+  }
+}
+// 覆盖 iview 下拉菜单样式
+.ivu-select-dropdown-style() {
+  background: rgba(23, 20, 20, 0.5);
+  border-color: rgba(72, 69, 69, 0.4);
+  box-shadow: 0 1px 6px rgba(130, 122, 122, 0.62);
+}
+// 下拉项 覆盖 iview 下拉项样式
+.ivu-dropdown-item-style() {
+  color: #ffffff;
+  &:hover {
+    background: rgba(103, 103, 103, 0.4);
+    color: #ffffff;
+  }
+}
+
+.ivu-avatar-style(){
+  background: #303336;
+  cursor: pointer;
+  border: 1px solid #444;
+}
