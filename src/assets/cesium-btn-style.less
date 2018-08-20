@@ -1,3 +1,4 @@
+@import "colors";
 // cesium button 样式
 .cesium-btn-style() {
   display: inline-block;
@@ -18,7 +19,7 @@
     box-shadow: 0 0 8px #ffffff;
   }
   &:focus {
-    border-color: #ea4;
+    border-color: @default-border-color;
     outline: none;
   }
 }
@@ -30,7 +31,7 @@
   // 鼠标悬浮
   &:hover {
     background: rgba(2, 2, 2, 0.4);
-    border-left: 1px solid #ea4;
+    border-left: 1px solid @default-border-color;
   }
 }
 // 覆盖 iview 下拉菜单样式
@@ -47,7 +48,7 @@
     color: #ffffff;
   }
 }
-
+// iview avatar 样式
 .ivu-avatar-style(){
   background: #303336;
   cursor: pointer;
