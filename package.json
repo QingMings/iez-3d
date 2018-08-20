@@ -22,9 +22,11 @@
     "@vue/cli-plugin-eslint": "^3.0.0-rc.11",
     "@vue/cli-service": "^3.0.0-rc.11",
     "@vue/eslint-config-standard": "^3.0.0-rc.11",
+    "compression-webpack-plugin": "^1.1.11",
     "copy-webpack-plugin": "^4.5.2",
     "less": "^3.0.4",
     "less-loader": "^4.1.0",
+    "uglifyjs-webpack-plugin": "^1.2.7",
     "vue-template-compiler": "^2.5.17"
   }
 }
