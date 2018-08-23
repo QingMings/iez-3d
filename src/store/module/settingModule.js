@@ -14,10 +14,9 @@ export default {
      *
      */
     getSettingByIndex: (state) => (index) => {
-      if (index === 0){
+      if (index === 0) {
         return state.settings.hotPointMark
-      }
-      else if (index === 1) {
+      } else if (index === 1) {
         return state.settings.buildMark
       }
     }
