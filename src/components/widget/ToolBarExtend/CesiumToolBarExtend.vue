@@ -2,6 +2,9 @@
     <span class="iez-toolbar-right">
         <!--cesium toolbar 扩展-->
         <div class="iez-toolbar-ext">
+            <div  class="iez-baseLayers-wrapper">
+                <div id="BaseLayersPicker"></div>
+            </div>
             <!--用户头像-->
             <div ref="userWrapper" class="iez-user-wrapper">
                 <Dropdown trigger="custom" :visible="userVisible" @on-click="logOut" placement="bottom-end">
