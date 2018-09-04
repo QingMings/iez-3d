@@ -34,6 +34,42 @@ export const isMobile = () => {
     return false
   }
 }
+/**
+ * @time: 2018/9/4上午8:30
+ * @author:QingMings(1821063757@qq.com)
+ * @desc: 统一错误提示配置
+ *
+ */
+export const error = message => {
+  return {
+    content: message,
+    duration: 10,
+    closable: true
+  }
+}
+/**
+ * @time: 2018/9/4上午8:30
+ * @author:QingMings(1821063757@qq.com)
+ * @desc: 统一消息提示配置
+ *
+ */
+export const info = message => {
+  return {
+    content: message,
+    duration: 5,
+    closable: true
+  }
+}
+/**
+ * @time: 2018/9/4上午8:31
+ * @author:QingMings(1821063757@qq.com)
+ * @desc:  检查 是否有子元素 并返回 boolean 值
+ * @param {node} iview tree node
+ * @return {Boolean}
+ */
+export const hasChild = node => {
+  return  (node.children!= undefined && node.children.length >0)
+}
 
 export default {
   closeSupport,
