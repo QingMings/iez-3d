@@ -20,13 +20,13 @@ LocalGeocoder.prototype.geocode = function (entityId) {
   if (!Cesium.defined(this.viewer)) {
     throw new Cesium.DeveloperError('LocalGeocoder.viewer 是必须的')
   }
-  var matchArr = regexMatch(entityId, array)
-  var result = matchArr.map(resObj => {
-    var entityPosition = resObj.position.getValue(viewer.clock.currentTime)
-    var cartographic = Cesium.Cartographic.fromCartesian(entityPosition)
-    var longitudeStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
-    var latitudeStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
-    var endPosition = Cesium.Cartesian3.fromDegrees(Number(longitudeStr), Number(latitudeStr), 50.0)
+  const matchArr = regexMatch(entityId, array)
+  const result = matchArr.map(resObj => {
+    const entityPosition = resObj.position.getValue(viewer.clock.currentTime)
+    const cartographic = Cesium.Cartographic.fromCartesian(entityPosition)
+    const longitudeStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
+    const latitudeStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
+    const endPosition = Cesium.Cartesian3.fromDegrees(Number(longitudeStr), Number(latitudeStr), 50.0)
     return {
       displayName: resObj.name,
       destination: endPosition
@@ -42,10 +42,10 @@ LocalGeocoder.prototype.geocode = function (entityId) {
  *@param targetArr  需要匹配的数组
  */
 function regexMatch (literalString, targetArr) {
-  var matchBin = []
-  var oRegex = new RegExp(literalString)
+  const matchBin = []
+  const oRegex = new RegExp(literalString)
   for (let i = 0; i < targetArr.length; i++) {
-    var item = String(targetArr[i].name).search(oRegex)
+    const item = String(targetArr[i].name).search(oRegex)
     if (item > -1) {
       matchBin.push(targetArr[i])
     }
