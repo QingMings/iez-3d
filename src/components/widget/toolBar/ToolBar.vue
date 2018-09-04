@@ -10,12 +10,12 @@
                 <div class="layer-manager-dropDown" :class="{'layer-manager-dropDown-visible':layerManagerVisible }">
                     <div class="layerManagerTitle">图层管理</div>
                     <Tree :data="configData" ref="layerManagerTree" show-checkbox class="layer-manager-tree"
-                           @on-node-check="onTreeItemChecked" @on-node-select="onTreeItemSelected"></Tree>
+                          @on-node-check="onTreeItemChecked" @on-node-select="onTreeItemSelected"></Tree>
                 </div>
             </div>
-            <!--<Button shape="circle" title="底图设置"  @click="shareTest" class="ivu-btn-circle ivu-btn-icon-only">-->
-            <!--<Icon type="ios-map"/>-->
-            <!--</Button>-->
+            <Button shape="circle" title="底图设置" @click="shareTest" class="ivu-btn-circle ivu-btn-icon-only">
+                <Icon type="ios-map"/>
+            </Button>
             <div ref="dropDownwrapper" class="dropDownwrapper">
                 <Dropdown trigger="custom" @on-click="showDialog" :visible="visible" placement="bottom-start">
                     <Button shape="circle" title="常用工具" @click="dropDownHandler"
@@ -36,7 +36,6 @@
     </div>
 </template>
 <script type="text/javascript">
-import Cesium from 'cesium/Cesium'
 import {closeSupport} from '../../../utils/util'
 import Coordinates from '../../../views/coordinates'
 // import 'jquery'
@@ -60,9 +59,7 @@ export default {
     closeSupport(this.layerManagerDropDownCloseSupport)
     // 测试手机旋转屏幕事件
     window.addEventListener('orientationchange', function (event) {
-
     })
-
   },
   methods: {
     dropDownHandler: function () {
@@ -81,6 +78,7 @@ export default {
       })
     },
     shareTest: function () {
+
     },
     mytest: function () {
 
@@ -89,14 +87,14 @@ export default {
       this.layerManagerVisible = !this.layerManagerVisible
     },
     layerManagerDropDownCloseSupport: function (e) {
-      if (this.$refs.layerManagerWrapper != undefined) {
+      if (this.$refs.layerManagerWrapper !== undefined) {
         if (!this.$refs.layerManagerWrapper.contains(e.target)) {
           this.layerManagerVisible = false
         }
       }
     },
-    onTreeItemCheckedChange(selectedList) {
-      const filterByType = (node) =>  (node.type !== undefined)
+    onTreeItemCheckedChange (selectedList) {
+      const filterByType = (node) => (node.type !== undefined)
       // console.info(a)
       // console.info(this.configData)
       var checked = this.$refs.layerManagerTree.getCheckedNodes()
@@ -107,29 +105,24 @@ export default {
       // const node = selectedList[selectedList.length - 1]
       // console.info(node.title)
     },
-    onTreeItemChecked({node,checked}){
-
-
-      if (node.children !==undefined) {
-            if (checked){
-              eventBus.$emit(`showChildData`,node)
-            }
-            else if (!checked) {
-              eventBus.$emit(`hideChildData`, node)
-            }
-
-      }else {
-        // console.info(JSON.stringify({'nodeName':node.title, 'nodeStatus': checked}))
-        if (checked){
-          eventBus.$emit(`dataShow${node.type}`, node)
+    onTreeItemChecked ({node, checked}) {
+      if (node.children !== undefined) {
+        if (checked) {
+          eventBus.$emit(`showChildData`, node)
+        } else if (!checked) {
+          eventBus.$emit(`hideChildData`, node)
         }
-        else if (!checked) {
+      } else {
+        // console.info(JSON.stringify({'nodeName':node.title, 'nodeStatus': checked}))
+        if (checked) {
+          eventBus.$emit(`dataShow${node.type}`, node)
+        } else if (!checked) {
           eventBus.$emit(`dataHide${node.type}`, node)
         }
       }
     },
-    onTreeItemSelected(node) {
-        eventBus.$emit(`zoomTo`, node)
+    onTreeItemSelected (node) {
+      eventBus.$emit(`zoomTo`, node)
     }
   }
 }
