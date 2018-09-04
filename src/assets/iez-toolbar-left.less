@@ -3,7 +3,7 @@
 .iez-toolbar-left {
   position: absolute;
   left: 5px;
-  top: 5px;
+  //top: 5px;
   margin-left: -5px;
   z-index: 99;
 
@@ -28,16 +28,73 @@
     .ivu-select-dropdown {
       .ivu-select-dropdown-style
     }
-        // 下拉项
-      .ivu-dropdown-item {
-        .ivu-dropdown-item-style
-      }
+    // 下拉项
+    .ivu-dropdown-item {
+      .ivu-dropdown-item-style
+    }
 
-      .dropDownwrapper {
-        float: right;
+    .layer-manager-wrapper, .dropDownwrapper {
+      float: left;
+      // 图层管理
+      .layer-manager-dropDown {
+        display: block;
+        position: absolute;
+        box-sizing: content-box;
+        top: auto;
+        left: 6px;
+        width: 220px;
+        max-height: 500px;
+        margin-top: 5px;
+        background-color: rgba(38, 38, 38, 0.75);
+        border: 1px solid #444;
+        padding: 6px;
+        overflow: auto;
+        border-radius: 10px;
+        user-select: none;
+        transform: translate(0, -20%);
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 0.2s, opacity 0.2s ease-in, transform 0.2s ease-in;
+
+        .layerManagerTitle {
+          display: block;
+          font-family: sans-serif;
+          font-size: 13pt;
+          text-align: left;
+          color: #edffff;
+          margin-bottom: 4px;
+        }
+        .layer-manager-tree {
+          text-align: left;
+
+          .ivu-tree-title {
+            color: #ffffff;
+            &:hover {
+              background-color: #666f75;
+            }
+          }
+          .ivu-tree-title-selected {
+            background-color: #666f75;
+            &:hover {
+              background-color: #666f75;
+            }
+          }
+          .ivu-tree-arrow {
+            color: #b5a3a3;
+          }
+        }
+      }
+      .layer-manager-dropDown-visible {
+        transform: translate(0, 0);
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
       }
     }
   }
+}
+
 .iez-dropMenu {
   .iez-dropMenu-style
 }
+

@@ -1,6 +1,6 @@
 <template>
     <div id="cesiumContainer">
-        <ToolBar></ToolBar>
+        <ToolBar/>
         <!--<ToolBarR></ToolBarR>-->
     </div>
 </template>
