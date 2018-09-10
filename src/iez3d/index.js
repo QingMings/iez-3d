@@ -401,7 +401,11 @@ iez3d.prototype.layerManager = function () {
     this.eventbus.$emit(`dataShow${target.type}`) // 触发节点数据加载
   })
   this.eventbus.$on('startmeasure', target => {
-    measureLineSpace(this.viewer)
+   // measureLineSpace(this.viewer)
+      console.log("startmeasure [this,this.drawTool,target]="  ,[this,this.drawTool,target])
+      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
+      //this.drawTool["destory"];
+      this.drawTool["route_DrS"]();
   })
 }
 /**
