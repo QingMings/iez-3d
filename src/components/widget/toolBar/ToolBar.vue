@@ -16,6 +16,7 @@
             <Button shape="circle" title="底图设置" @click="shareTest" class="ivu-btn-circle ivu-btn-icon-only">
                 <Icon type="ios-map"/>
             </Button>
+            <!--常用工具-->
             <div ref="dropDownwrapper" class="dropDownwrapper">
                 <Dropdown trigger="custom" @on-click="showDialog" :visible="visible" placement="bottom-start">
                     <Button shape="circle" title="常用工具" @click="dropDownHandler"
@@ -36,13 +37,14 @@
     </div>
 </template>
 <script type="text/javascript">
-import {closeSupport} from '../../../utils/util'
+import {closeSupport, hasChild} from '../../../utils/util'
 import Coordinates from '../../../views/coordinates'
 // import 'jquery'
 // import 'vue-ztreev3/js/jquery.ztree.all'
 // import 'vue-ztreev3/css/zTreeStyle/zTreeStyle.css'
 import {MapConfig} from '../../../iez3d/layers/MapConfig'
 import {eventBus} from '../../eventbus/EventBus'
+import {Event} from '../../../utils/constant'
 
 export default {
   name: 'ToolBar',
@@ -78,7 +80,8 @@ export default {
       })
     },
     shareTest: function () {
-
+      // layer.alert('HelloWorld')
+      eventBus.$emit('startmeasure','line')
     },
     mytest: function () {
 
@@ -106,23 +109,15 @@ export default {
       // console.info(node.title)
     },
     onTreeItemChecked ({node, checked}) {
-      if (node.children !== undefined) {
-        if (checked) {
-          eventBus.$emit(`showChildData`, node)
-        } else if (!checked) {
-          eventBus.$emit(`hideChildData`, node)
-        }
+      if (hasChild(node)) {
+        console.info('checked')
+        eventBus.$emit(Event.ShowChildData, {node: node, checked: checked})
       } else {
-        // console.info(JSON.stringify({'nodeName':node.title, 'nodeStatus': checked}))
-        if (checked) {
-          eventBus.$emit(`dataShow${node.type}`, node)
-        } else if (!checked) {
-          eventBus.$emit(`dataHide${node.type}`, node)
-        }
+        eventBus.$emit(Event.ShowData, {node: node, checked: checked})
       }
     },
     onTreeItemSelected (node) {
-      eventBus.$emit(`zoomTo`, node)
+      eventBus.$emit(Event.FlyToData, node)
     }
   }
 }

@@ -1,14 +1,17 @@
 import Cesium from 'cesium/Cesium'
 import iezNavi from '@iezview/iez-navi/viewerCesiumNavigationMixin'
-import CesiumMeasure from '../utils/CesiumMeasure'
+// import CesiumMeasure from '../utils/CesiumMeasure'
 import LocalGeocoder from '../utils/LocalGeocoder'
 import Vue from 'vue'
 import store from '../store/store'
 import CesiumToolBarExtend from '../components/widget/ToolBarExtend/CesiumToolBarExtend'
 import imageryViewModels from './layers/DefaultImageryProvider'
 import {eventBus} from '../components/eventbus/EventBus'
-import {error, info, isMobile, hasChild} from '../utils/util'
-import {localLayers,getModelLayers,getImageLayers} from './layers/localLayers'
+import {error, info, isMobile} from '../utils/util'
+import {getImageLayers, getModelLayers, getSubDatas, localLayers} from './layers/localLayers'
+import {DataType, Event, SubDataFormat, SubDataType} from '../utils/constant'
+import {measureLineSpace} from '../utils/measure'
+import JsonDataSource from './JsonDataSource'
 
 /**
  *@time: 2018/8/10上午9:48
@@ -19,7 +22,7 @@ import {localLayers,getModelLayers,getImageLayers} from './layers/localLayers'
  */
 const iez3d = function (options) {
   // 初始化 量测工具
-  CesiumMeasure.init()
+  // CesiumMeasure.init()
   this.init(options)
 }
 
@@ -42,11 +45,11 @@ iez3d.prototype.init = function (options) {
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
-  this.drawTool = new Cesium.DrawTool({
-    viewer: this.viewer,
-    isMeasure: true,
-    isClampGround: true
-  })
+  // this.drawTool = new Cesium.DrawTool({
+  //   viewer: this.viewer,
+  //   isMeasure: true,
+  //   isClampGround: true
+  // })
 
   // 显示帧率
   if (Cesium.defined(options.viewerOptions.geocoder) && (options.viewerOptions.geocoder instanceof LocalGeocoder)) {
@@ -57,6 +60,7 @@ iez3d.prototype.init = function (options) {
   // 导航插件
   if (Cesium.defined(options.naviOptions)) {
     iezNavi(this.viewer, options.naviOptions)
+    this.showLatLonHeightProprety()
   }
   // 持有 CesiumViewer.vue 组件对象
   if (Cesium.defined(options.debug) && options.debug === true) {
@@ -142,7 +146,7 @@ iez3d.prototype.addTdtGlogalImageLayer = function () {
  *
  */
 iez3d.prototype.baseLayerPicker = function () {
-  let baseLayersPicker = new Cesium.BaseLayerPicker('BaseLayersPicker', {
+  const baseLayersPicker = new Cesium.BaseLayerPicker('BaseLayersPicker', {
     globe: this.scene.globe,
     imageryProviderViewModels: imageryViewModels
   })
@@ -159,20 +163,31 @@ iez3d.prototype.showLatLonHeightProprety = function () {
     if (scene.mode !== Cesium.SceneMode.MORPHING) {
       const pickedObject = scene.pick(movement.endPosition)
       if (scene.pickPositionSupported && Cesium.defined(pickedObject)) {
+        // 在模型上显示
         const cartesian = scene.pickPosition(movement.endPosition)
         if (Cesium.defined(cartesian)) {
           const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
           const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
           const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
           const heightStr = cartographic.height.toFixed(2)
-          console.log(`经度：`)
+          this.eventbus.$emit('updateLatLon', `经度：${longStr} 纬度：${latStr} 高度：${heightStr}米`)
         }
-
+      } else {
+        // 再球上显示经纬度
+        const cartesian = this.camera.pickEllipsoid(movement.endPosition, scene.globe.ellipsoid)
+        if (cartesian) {
+          const cartographic = this.scene.globe.ellipsoid.cartesianToCartographic(cartesian)
+          const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
+          const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
+          this.eventbus.$emit('updateLatLon', `经度：${longStr} 纬度：${latStr}`)
+        } else {
+          this.eventbus.$emit('updateLatLon', '')
+        }
       }
     }
-
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
 }
+
 /**
  * @time: 2018/8/29上午10:52
  * @author:QingMings(1821063757@qq.com)
@@ -181,6 +196,7 @@ iez3d.prototype.showLatLonHeightProprety = function () {
  */
 iez3d.prototype.layerManager = function () {
   const that = this
+
   this.eventbus.$on('addDataSource', target => {
     // console.info(target)
     // console.info(this)
@@ -188,29 +204,159 @@ iez3d.prototype.layerManager = function () {
       this.scene.primitives.add(tileSet)
       this.viewer.zoomTo(tileSet)
     })
-
   })
-  this.eventbus.$on('dataShow501', target => {
-    const modelLayer = getModelLayers(target)
-    if (modelLayer.length > 0) {
-      modelLayer[0].primitive.show = true
-    } else {
-      that.add3DTileSet(target.serviceUrl, tileSet => {
-        localLayers.modelLayers.push({title: target.title, primitive: tileSet})
-        that.scene.primitives.add(tileSet)
-        that.viewer.flyTo(tileSet)
-      })
+  // 单机类别节点
+  this.eventbus.$on(Event.ShowChildData, ({node, checked, parent}) => {
+    switch (node.type) {
+      case DataType.category:
+        node.children.map(child => {
+          that.eventbus.$emit(Event.ShowChildData, {node: child, checked: child.checked, parent: node})
+        })
+        break
+      case DataType.modelData:
+        if (checked) {
+          showModalLayer({node: node, parent: parent}).then(() => {
+            loadSubDatas({node: node})
+          })
+        } else {
+          hideModalLayer({node: node, parent: parent})
+        }
+
+        break
+      case DataType.imageryData:
+
+        break
+      case DataType.subData:
+        // const modalLayer = getModelLayers(parent)
+        // const subDatas = getSubDatas(modalLayer[0])
+        // subDatas.push(node)
+        // console.info(JSON.stringify(subDatas))
+        console.info('subdata')
+        loadSubData({node: node, parent: parent})
+        break
     }
   })
+  this.eventbus.$on(Event.ShowData, ({node, checked}) => {
+    console.info(`showData` + JSON.stringify(node))
+    switch (node.type) {
+      case DataType.modelData:
+        if (checked) {
+          showModalLayer({node: node})
+        } else {
+          hideModalLayer({node: node})
+        }
+        break
+      case DataType.imageryData:
+        break
+      case DataType.subData:
+
+        break
+    }
+  })
+  this.eventbus.$on()
+  // addModalLayer 的包装 ，根据模型数据的数量 判断了是否FlyTo
+  const showModalLayer = ({node, parent}) => {
+    //只有一个的时候 flyTo
+    if (parent !== undefined && parent.children.length > 1) {
+      return addModalLayer({target: node, isFlyTo: false})
+    } else {
+      return addModalLayer({target: node, isFlyTo: true})
+    }
+  }
+  // 加载 subdData
+  const loadSubDatas = ({node}) => {
+    node.children.map(subData => {
+      this.eventbus.$emit(Event.ShowChildData, {node: subData, checked: subData.checked, parent: node})
+    })
+  }
+  const loadSubData = ({node, parent}) => {
+    const modalLayer = getModelLayers(parent)
+    const subDatas = getSubDatas(modalLayer[0])
+    switch (node.dataType) {
+      case SubDataType.Point:
+        switch (node.format) {
+
+          case SubDataFormat.GeoJson:
+            const findSubData = subDatas.filter(currSubData => {
+              return currSubData.title === node.title
+            })
+            if (findSubData.length > 0) {
+              findSubData[0].dataSource.show = true
+            } else {
+              let geoJsonDataSource = new Cesium.GeoJsonDataSource()
+              geoJsonDataSource.load(node.serviceUrl).then(dataSource => {
+                this.viewer.dataSources.add(dataSource)
+                // 复制属性出来，防止vue跟踪报错
+                let subdata = {}
+                Object.assign(subdata, node)
+
+                subdata['dataSource'] = dataSource
+                subDatas.push(subdata)
+                let entitys = dataSource.entities.values
+                entitys.forEach((item, index) => {
+                  const color = item.properties.color.getValue(this.viewer.clock.currentTime)
+                  item.billboard = {
+                    image: node.icon,
+                    show: true,
+                    color: Cesium.Color.fromCssColorString(color),
+                    scale: 1.0,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                  }
+                })
+                return Cesium.when(dataSource)
+              }).then(dataSource => {
+                  console.info(dataSource.entities.values.length)
+              })
+            }
+            break
+        }
+        break
+      case SubDataType.Polygon:
+        switch (node.format) {
+          case SubDataFormat.Json:
+            let jsonDataSource = new JsonDataSource(node.title)
+                jsonDataSource.load(node.serviceUrl,{dataType: node.dataType,alpha:0.5}).then(dataSource => {
+                  this.viewer.dataSources.add(dataSource)
+                })
+
+        }
+        break
+
+    }
+  }
+  // 加载 模型数据
+  const addModalLayer = ({target, isFlyTo}) => {
+    return new Promise((resolve, regect) => {
+      const modelLayer = getModelLayers(target)
+      if (modelLayer.length > 0) {
+        modelLayer[0].primitive.show = true
+        resolve()
+      } else {
+        that.add3DTileSet(target.serviceUrl, tileSet => {
+          localLayers.modelLayers.push({title: target.title, primitive: tileSet})
+          that.scene.primitives.add(tileSet)
+          if (isFlyTo) that.viewer.flyTo(tileSet)
+          resolve()
+        })
+      }
+    })
+  }
+  // 隐藏 模型数据
+  const hideModalLayer = ({node, parent}) => {
+    const modelLayer = getModelLayers(node)
+    if (modelLayer.length > 0) {
+      modelLayer[0].primitive.show = false
+    }
+  }
   this.eventbus.$on('dataHide501', target => {
     const modelLayer = getModelLayers(target)
     if (modelLayer.length > 0) {
       modelLayer[0].primitive.show = false
     }
   })
-
-  this.eventbus.$on('zoomTo', target => {
-    if (target.type === 501) {
+  // FlyTo 模型数据
+  this.eventbus.$on(Event.FlyToData, target => {
+    if (target.type === DataType.modelData) {
       const modelLayer = getModelLayers(target)
       if (modelLayer.length > 0) {
         this.viewer.flyTo(modelLayer[0].primitive)
@@ -233,9 +379,9 @@ iez3d.prototype.layerManager = function () {
   })
 
   this.eventbus.$on('dataHide502', target => {
-    const  imageLayer = getImageLayers(target)
-    if (imageLayer.length >0) {
-       imageLayer[0].layer.show = false
+    const imageLayer = getImageLayers(target)
+    if (imageLayer.length > 0) {
+      imageLayer[0].layer.show = false
     }
   })
   /**
@@ -245,10 +391,13 @@ iez3d.prototype.layerManager = function () {
    *
    */
   this.eventbus.$on('showChildData', target => {
-    if (target.children!= undefined && target.type != undefined){
+    if (target.children !== undefined && target.type !== undefined) {
 
     }
-     this.eventbus.$emit(`dataShow${target.type}`); // 触发节点数据加载
+    this.eventbus.$emit(`dataShow${target.type}`) // 触发节点数据加载
+  })
+  this.eventbus.$on('startmeasure', target => {
+    measureLineSpace(this.viewer)
   })
 }
 /**
@@ -273,8 +422,8 @@ iez3d.prototype.add3DTileSet = function (url, callBack) {
  * @desc: 添加 Wmts 图层
  *
  */
-iez3d.prototype.addWmtsImageryProvider = function({title,serviceUrl,style,format,tileMatrixSetID,show},callback){
-  let layer =  this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
+iez3d.prototype.addWmtsImageryProvider = function ({title, serviceUrl, style, format, tileMatrixSetID, show}, callback) {
+  let layer = this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
     url: serviceUrl,
     layer: title,
     style: style,
@@ -286,7 +435,7 @@ iez3d.prototype.addWmtsImageryProvider = function({title,serviceUrl,style,format
 }
 /**
  * @time: 2018/8/30下午2:04
- * @author:QingMings(1821063757@qq.com)
+ * @author: QingMings(1821063757@qq.com)
  * @desc: 错误提示 依赖 {vue}  {iview.Message}
  *
  */
@@ -295,7 +444,7 @@ iez3d.prototype.error = function (message) {
 }
 /**
  * @time: 2018/8/30下午2:05
- * @author:QingMings(1821063757@qq.com)
+ * @author: QingMings(1821063757@qq.com)
  * @desc: 消息提示 依赖 {vue}  {iview.Message}
  *
  */

@@ -24,7 +24,7 @@ export default {
      *
      */
     setLocationInfo: (state, info) => {
-      state.locationBox.locationInfo=info
+      state.locationBox.locationInfo = info
     }
   }
 

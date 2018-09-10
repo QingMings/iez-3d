@@ -2,7 +2,25 @@ import Cesium from 'cesium/Cesium'
 
 let providerViewModels = []
 
-
+providerViewModels.push(new Cesium.ProviderViewModel({
+  name: 'ESRI World Imagery',
+  iconUrl: Cesium.buildModuleUrl('Widgets/Images/ImageryProviders/esriWorldImagery.png'),
+  tooltip: '\
+World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution \
+satellite imagery worldwide.  The map includes NASA Blue Marble: Next Generation 500m resolution imagery at small scales \
+(above 1:1,000,000), i-cubed 15m eSAT imagery at medium-to-large scales (down to 1:70,000) for the world, and USGS 15m Landsat \
+imagery for Antarctica. The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in \
+parts of Western Europe from DigitalGlobe. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, \
+i-cubed Nationwide Prime, Getmapping, AeroGRID, IGN Spain, and IGP Portugal.  Additionally, imagery at different resolutions has been \
+contributed by the GIS User Community.\nhttp://www.esri.com',
+  category: 'ArcGis',
+  creationFunction: function () {
+    return new Cesium.ArcGisMapServerImageryProvider({
+      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+      enablePickFeatures: false
+    })
+  }
+}))
 
 providerViewModels.push(new Cesium.ProviderViewModel({
   name: 'Bing Maps Aerial',
@@ -42,26 +60,6 @@ providerViewModels.push(new Cesium.ProviderViewModel({
   category: 'Cesium ion',
   creationFunction: function () {
     return new Cesium.IonImageryProvider({assetId: 3845})
-  }
-}))
-
-providerViewModels.push(new Cesium.ProviderViewModel({
-  name: 'ESRI World Imagery',
-  iconUrl: Cesium.buildModuleUrl('Widgets/Images/ImageryProviders/esriWorldImagery.png'),
-  tooltip: '\
-World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution \
-satellite imagery worldwide.  The map includes NASA Blue Marble: Next Generation 500m resolution imagery at small scales \
-(above 1:1,000,000), i-cubed 15m eSAT imagery at medium-to-large scales (down to 1:70,000) for the world, and USGS 15m Landsat \
-imagery for Antarctica. The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in \
-parts of Western Europe from DigitalGlobe. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, \
-i-cubed Nationwide Prime, Getmapping, AeroGRID, IGN Spain, and IGP Portugal.  Additionally, imagery at different resolutions has been \
-contributed by the GIS User Community.\nhttp://www.esri.com',
-  category: 'ArcGis',
-  creationFunction: function () {
-    return new Cesium.ArcGisMapServerImageryProvider({
-      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
-      enablePickFeatures: false
-    })
   }
 }))
 
@@ -108,7 +106,7 @@ providerViewModels.push(new Cesium.ProviderViewModel({
       layer: 'tdtBasicLayer',
       style: 'default',
       format: 'image/jpeg',
-      tileMatrixSetID: 'GoogleMapsCompatible',
+      tileMatrixSetID: 'GoogleMapsCompatible'
 
     })
   }
@@ -125,7 +123,7 @@ providerViewModels.push(new Cesium.ProviderViewModel({
       layer: 'tdtBasicLayer',
       style: 'default',
       format: 'image/jpeg',
-      tileMatrixSetID: 'GoogleMapsCompatible',
+      tileMatrixSetID: 'GoogleMapsCompatible'
 
     })
   }
