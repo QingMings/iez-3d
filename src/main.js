@@ -8,11 +8,14 @@ import iView from 'iview'
 import 'iview/dist/styles/iview.css'
 import VModel from 'vue-js-modal'
 import http from './axios/http'
-import '../public/js/layer/theme/default/layer.css'
-import $ from './utils/jquery-vendor'
-import Layer from '../public/js/layer/layer'
+import '../public/static/plugins/layer/theme/default/layer.css'
+// import $ from './utils/jquery-vendor'
+import 'jquery'
+import layer from 'layer'
+// import 'layer.css'
+
 Vue.prototype.$http = http
-Vue.prototype.$layer = Layer
+// Vue.prototype.$layer = layer
 Vue.config.productionTip = false
 Vue.use(iView)
 Vue.use(vuex)

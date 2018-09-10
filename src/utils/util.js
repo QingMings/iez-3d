@@ -68,7 +68,7 @@ export const info = message => {
  * @return {Boolean}
  */
 export const hasChild = node => {
-  return  (node.children!= undefined && node.children.length >0)
+  return (node.children != undefined && node.children.length > 0)
 }
 
 export default {

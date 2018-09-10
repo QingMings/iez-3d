@@ -1,7 +1,7 @@
 <template>
     <div id="cesiumContainer">
         <ToolBar/>
-        <!--<ToolBarR></ToolBarR>-->
+        <location-box/>
     </div>
 </template>
 
@@ -11,11 +11,13 @@ import Iez3d from '../iez3d'
 import 'cesium/Widgets/widgets.css'
 import LocalGeocoder from '../utils/LocalGeocoder'
 import ToolBar from './widget/toolBar/ToolBar'
+import LocationBox from './widget/LocationBox/LocationBox'
 
 var iez3d
 export default {
   name: 'CesiumViewer',
   components: {
+    LocationBox,
     ToolBar
   },
   created () {
