@@ -11,6 +11,7 @@
     "@iezview/iez-navi": "^1.0.0",
     "axios": "^0.18.0",
     "cesium": "^1.48.1",
+    "expose-loader": "^0.7.5",
     "iview": "^3.0.1",
     "jquery": "^3.3.1",
     "vue": "^2.5.17",
