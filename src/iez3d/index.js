@@ -11,6 +11,7 @@ import {error, info, isMobile} from '../utils/util'
 import {getImageLayers, getModelLayers, getSubDatas, localLayers} from './layers/localLayers'
 import {DataType, Event, SubDataFormat, SubDataType} from '../utils/constant'
 import {measureLineSpace} from '../utils/measure'
+import MeasureUtilNew from '../utils/MeasureUtilNew'
 import JsonDataSource from './JsonDataSource'
 
 /**
@@ -23,6 +24,7 @@ import JsonDataSource from './JsonDataSource'
 const iez3d = function (options) {
   // 初始化 量测工具
   // CesiumMeasure.init()
+    MeasureUtilNew.moduleDef();
   this.init(options)
 }
 
@@ -45,11 +47,13 @@ iez3d.prototype.init = function (options) {
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
-  // this.drawTool = new Cesium.DrawTool({
-  //   viewer: this.viewer,
-  //   isMeasure: true,
-  //   isClampGround: true
-  // })
+  this.drawTool = new Cesium.DrawTool({
+      contextObj: this.viewer,
+      useMea: true,
+      useClampGrd: true
+  })
+
+
 
   // 显示帧率
   if (Cesium.defined(options.viewerOptions.geocoder) && (options.viewerOptions.geocoder instanceof LocalGeocoder)) {
@@ -397,7 +401,11 @@ iez3d.prototype.layerManager = function () {
     this.eventbus.$emit(`dataShow${target.type}`) // 触发节点数据加载
   })
   this.eventbus.$on('startmeasure', target => {
-    measureLineSpace(this.viewer)
+   // measureLineSpace(this.viewer)
+      console.log("startmeasure [this,this.drawTool,target]="  ,[this,this.drawTool,target])
+      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
+      //this.drawTool["destory"];
+      this.drawTool["route_DrS"]();
   })
 }
 /**
