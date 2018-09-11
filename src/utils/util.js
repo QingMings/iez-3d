@@ -1,4 +1,5 @@
 import Cesium from 'cesium/Cesium'
+import {DataType} from './constant'
 
 /**
  * @time: 2018/8/20下午4:38
@@ -70,8 +71,47 @@ export const info = message => {
 export const hasChild = node => {
   return (node.children != undefined && node.children.length > 0)
 }
-
+// 克隆一部分属性
+export const cloneObj = target => {
+  let obj = {}
+  Object.assign(obj, target)
+  return obj
+}
+/**
+ * @time: 2018/9/10下午5:22
+ * @author:QingMings(1821063757@qq.com)
+ * @desc: subData对象 生成处理
+ *
+ */
+export const subDataGen = (node, subDatas, dataSource) => {
+  let subData = cloneObj(node)
+  subData['dataSource'] = dataSource
+  subDatas.push(subData)
+  return subData
+}
+/**
+ * @time: 2018/9/11下午5:16
+ * @author:QingMings(1821063757@qq.com)
+ * @desc: 数据处理，给模型数据添加一个属性，标识不级联
+ *
+ */
+export const dataProcess = dataArray => {
+  // category
+  dataArray.filter(data => data.type === DataType.category).forEach(data => {
+    // modalData or ImageryData
+    data.children.forEach(childData => {
+      if (childData.type === DataType.modelData){
+        if (childData.children){
+          childData['checkStrictly'] = false
+        }
+      }
+    })
+  })
+return dataArray
+}
 export default {
   closeSupport,
-  isMobile
+  isMobile,
+  subDataGen,
+  dataProcess
 }
