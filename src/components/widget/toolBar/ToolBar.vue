@@ -37,7 +37,7 @@
     </div>
 </template>
 <script type="text/javascript">
-import {closeSupport, hasChild} from '../../../utils/util'
+import {closeSupport, dataProcess, hasChild} from '../../../utils/util'
 import Coordinates from '../../../views/coordinates'
 // import 'jquery'
 // import 'vue-ztreev3/js/jquery.ztree.all'
@@ -53,7 +53,7 @@ export default {
     return {
       visible: false,
       layerManagerVisible: false,
-      configData: MapConfig
+      configData: dataProcess(MapConfig)
     }
   },
   mounted () {
@@ -108,12 +108,11 @@ export default {
       // const node = selectedList[selectedList.length - 1]
       // console.info(node.title)
     },
-    onTreeItemChecked ({node, checked}) {
+    onTreeItemChecked ({node, checked, parent}) {
       if (hasChild(node)) {
-        console.info('checked')
-        eventBus.$emit(Event.ShowChildData, {node: node, checked: checked})
+        eventBus.$emit(Event.ShowChildData, {node: node, checked: checked, parent: parent})
       } else {
-        eventBus.$emit(Event.ShowData, {node: node, checked: checked})
+        eventBus.$emit(Event.ShowData, {node: node, checked: checked, parent: parent})
       }
     },
     onTreeItemSelected (node) {
