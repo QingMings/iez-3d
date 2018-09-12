@@ -42,15 +42,18 @@ const getSubDatas = function (layer) {
 /**
  * @time: 2018/9/7上午10:48
  * @author:QingMings(1821063757@qq.com)
- * @desc: 获取 subData中的一个
+ * @desc: 获取 subDatas中的 和 指定node的title符合的suaData
  *
  */
-const getSubData = function (target) {
-  // if ()
+const getSubData = function (target, node) {
+   return target.filter(currSubData => {
+    return currSubData.title === node.title
+  })
 }
 export {
   localLayers,
   getModelLayers,
   getImageLayers,
   getSubDatas,
+  getSubData
 }

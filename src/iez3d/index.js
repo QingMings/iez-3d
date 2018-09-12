@@ -7,13 +7,11 @@ import store from '../store/store'
 import CesiumToolBarExtend from '../components/widget/ToolBarExtend/CesiumToolBarExtend'
 import imageryViewModels from './layers/DefaultImageryProvider'
 import {eventBus} from '../components/eventbus/EventBus'
-import {error, info, isMobile} from '../utils/util'
-import {getImageLayers, getModelLayers, getSubDatas, localLayers} from './layers/localLayers'
-import {DataType, Event, SubDataFormat, SubDataType} from '../utils/constant'
-import {measureLineSpace} from '../utils/measure'
-import MeasureUtilNew from '../utils/MeasureUtilNew'
-import FlyManTool from '../utils/FlyManUtil_VUE'
-import JsonDataSource from './JsonDataSource'
+import {error, info} from '../utils/util'
+import LayerManagerEventHandler from './eventhandler/LayerManagerEventHandler'
+import {Event} from '../utils/constant'
+import FileSaver from 'file-saver'
+
 
 
 /**
@@ -26,9 +24,9 @@ import JsonDataSource from './JsonDataSource'
 const iez3d = function (options) {
   // 初始化 量测工具
   // CesiumMeasure.init()
-    MeasureUtilNew.moduleDef();
+  //   MeasureUtilNew.moduleDef();
     //初始化模拟飞行
-    FlyManTool.moduleDef();
+    // FlyManTool.moduleDef();
   this.init(options)
 }
 
@@ -46,19 +44,20 @@ iez3d.prototype.init = function (options) {
   // 设置默认视图矩形
   this.defaultViewRectangle(73, 4, 135, 53)
   this.viewer = new Cesium.Viewer(options.container, options.viewerOptions)
+  this.options = options
   this.camera = this.viewer.camera
   this.scene = this.viewer.scene
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
-  this.drawTool = new Cesium.DrawTool({
-      contextObj: this.viewer,
-      useMea: true,
-      useClampGrd: true
-  })
-  this.flyTool = new Cesium.FlyManTool({
-    contextObj: this.viewer
-  });
+  // this.drawTool = new Cesium.DrawTool({
+  //     contextObj: this.viewer,
+  //     useMea: true,
+  //     useClampGrd: true
+  // })
+  // this.flyTool = new Cesium.FlyManTool({
+  //   contextObj: this.viewer
+  // });
 
 
 
@@ -85,18 +84,10 @@ iez3d.prototype.init = function (options) {
   console.info(this.imageryLayers)
   // this.addTdtImgAnnoLayer()
   this.baseLayerPicker()
-  this.layerManager()
+  this.eventHandler()
   // this.test('data/Cesium_Air.gltf', 5000.0)
 }
-/**
- *@time: 2018/8/12下午1:43
- *@author:QingMings(1821063757@qq.com)
- *@desc: 测试实例方法
- *
- */
-iez3d.prototype.test = function (key) {
-  console.info(key)
-}
+
 /**
  *@time: 2018/8/14上午11:38
  *@author:QingMings(1821063757@qq.com)
@@ -147,9 +138,6 @@ iez3d.prototype.addTdtImgAnnoLayer = function () {
   }))
 }
 
-iez3d.prototype.addTdtGlogalImageLayer = function () {
-
-}
 /**
  * @time: 2018/8/23上午11:38
  * @author:QingMings(1821063757@qq.com)
@@ -202,276 +190,13 @@ iez3d.prototype.showLatLonHeightProprety = function () {
 /**
  * @time: 2018/8/29上午10:52
  * @author:QingMings(1821063757@qq.com)
- * @desc: 图层管理
+ * @desc: 图层、数据管理
  *
  */
 iez3d.prototype.layerManager = function () {
-  const that = this
-
-  this.eventbus.$on('addDataSource', target => {
-    // console.info(target)
-    // console.info(this)
-    this.add3DTileSet({name: target.title, url: target.serviceUrl}, tileSet => {
-      this.scene.primitives.add(tileSet)
-      this.viewer.zoomTo(tileSet)
-    })
-  })
-  // 单机类别节点
-  this.eventbus.$on(Event.ShowChildData, ({node, checked, parent}) => {
-    switch (node.type) {
-      case DataType.category:
-        node.children.map(child => {
-          that.eventbus.$emit(Event.ShowChildData, {node: child, checked: child.checked, parent: node})
-        })
-        break
-      case DataType.modelData:
-        if (checked) {
-          showModalLayer({node: node, parent: parent}).then(() => {
-            loadSubDatas({node: node})
-          })
-        } else {
-          hideModalLayer({node: node, parent: parent})
-        }
-
-        break
-      case DataType.imageryData:
-
-        break
-      case DataType.subData:
-        // const modalLayer = getModelLayers(parent)
-        // const subDatas = getSubDatas(modalLayer[0])
-        // subDatas.push(node)
-        // console.info(JSON.stringify(subDatas))
-        console.info('subdata')
-        loadSubData({node: node, parent: parent})
-        break
-    }
-  })
-  this.eventbus.$on(Event.ShowData, ({node, checked}) => {
-    console.info(`showData` + JSON.stringify(node))
-    switch (node.type) {
-      case DataType.modelData:
-        if (checked) {
-          showModalLayer({node: node})
-        } else {
-          hideModalLayer({node: node})
-        }
-        break
-      case DataType.imageryData:
-        break
-      case DataType.subData:
-
-        break
-    }
-  })
-  this.eventbus.$on()
-  // addModalLayer 的包装 ，根据模型数据的数量 判断了是否FlyTo
-  const showModalLayer = ({node, parent}) => {
-    //只有一个的时候 flyTo
-    if (parent !== undefined && parent.children.length > 1) {
-      return addModalLayer({target: node, isFlyTo: false})
-    } else {
-      return addModalLayer({target: node, isFlyTo: true})
-    }
-  }
-  // 加载 subdData
-  const loadSubDatas = ({node}) => {
-    node.children.map(subData => {
-      this.eventbus.$emit(Event.ShowChildData, {node: subData, checked: subData.checked, parent: node})
-    })
-  }
-  const loadSubData = ({node, parent}) => {
-    const modalLayer = getModelLayers(parent)
-    const subDatas = getSubDatas(modalLayer[0])
-    switch (node.dataType) {
-      case SubDataType.Point:
-        switch (node.format) {
-
-          case SubDataFormat.GeoJson:
-            const findSubData = subDatas.filter(currSubData => {
-              return currSubData.title === node.title
-            })
-            if (findSubData.length > 0) {
-              findSubData[0].dataSource.show = true
-            } else {
-              let geoJsonDataSource = new Cesium.GeoJsonDataSource()
-              geoJsonDataSource.load(node.serviceUrl).then(dataSource => {
-                this.viewer.dataSources.add(dataSource)
-                // 复制属性出来，防止vue跟踪报错
-                let subdata = {}
-                Object.assign(subdata, node)
-
-                subdata['dataSource'] = dataSource
-                subDatas.push(subdata)
-                let entitys = dataSource.entities.values
-                entitys.forEach((item, index) => {
-                  const color = item.properties.color.getValue(this.viewer.clock.currentTime)
-                  item.billboard = {
-                    image: node.icon,
-                    show: true,
-                    color: Cesium.Color.fromCssColorString(color),
-                    scale: 1.0,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY
-                  }
-                })
-                return Cesium.when(dataSource)
-              }).then(dataSource => {
-                  console.info(dataSource.entities.values.length)
-              })
-            }
-            break
-        }
-        break
-      case SubDataType.Polygon:
-        switch (node.format) {
-          case SubDataFormat.Json:
-            let jsonDataSource = new JsonDataSource(node.title)
-                jsonDataSource.load(node.serviceUrl,{dataType: node.dataType,alpha:0.5}).then(dataSource => {
-                  this.viewer.dataSources.add(dataSource)
-                })
-
-        }
-        break
-
-    }
-  }
-  // 加载 模型数据
-  const addModalLayer = ({target, isFlyTo}) => {
-    return new Promise((resolve, regect) => {
-      const modelLayer = getModelLayers(target)
-      if (modelLayer.length > 0) {
-        modelLayer[0].primitive.show = true
-        resolve()
-      } else {
-        that.add3DTileSet(target.serviceUrl, tileSet => {
-          localLayers.modelLayers.push({title: target.title, primitive: tileSet})
-          that.scene.primitives.add(tileSet)
-          if (isFlyTo) that.viewer.flyTo(tileSet)
-          resolve()
-        })
-      }
-    })
-  }
-  // 隐藏 模型数据
-  const hideModalLayer = ({node, parent}) => {
-    const modelLayer = getModelLayers(node)
-    if (modelLayer.length > 0) {
-      modelLayer[0].primitive.show = false
-    }
-  }
-  this.eventbus.$on('dataHide501', target => {
-    const modelLayer = getModelLayers(target)
-    if (modelLayer.length > 0) {
-      modelLayer[0].primitive.show = false
-    }
-  })
-  // FlyTo 模型数据
-  this.eventbus.$on(Event.FlyToData, target => {
-    if (target.type === DataType.modelData) {
-      const modelLayer = getModelLayers(target)
-      if (modelLayer.length > 0) {
-        this.viewer.flyTo(modelLayer[0].primitive)
-      }
-    }
-  })
-
-  this.eventbus.$on('dataShow502', target => {
-    const imageLayer = getImageLayers(target)
-    if (imageLayer.length > 0) {
-      imageLayer[0].layer.show = true
-    } else {
-      switch (target.layerType) {
-        case 'wmts':
-          that.addWmtsImageryProvider(target, layer => {
-            localLayers.imageLayers.push({title: target.title, layer: layer})
-          })
-      }
-    }
-  })
-
-  this.eventbus.$on('dataHide502', target => {
-    const imageLayer = getImageLayers(target)
-    if (imageLayer.length > 0) {
-      imageLayer[0].layer.show = false
-    }
-  })
-  /**
-   * @time: 2018/9/3下午5:26
-   * @author:QingMings(1821063757@qq.com)
-   * @desc: 显示子节点数据 { target}
-   *
-   */
-  this.eventbus.$on('showChildData', target => {
-    if (target.children !== undefined && target.type !== undefined) {
-
-    }
-    this.eventbus.$emit(`dataShow${target.type}`) // 触发节点数据加载
-  })
-  this.eventbus.$on('startmeasure', target => {
-   // measureLineSpace(this.viewer)
-      console.log("startmeasure [this,this.drawTool,target]="  ,[this,this.drawTool,target])
-      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
-      //this.drawTool["destory"];
-      this.drawTool["route_DrS"]();
-  })
-  this.eventbus.$on('startfly', target => {
-    var flyOption = {
-      pathGeoJsonUrl: 'E:/sampledata/map97geo.json',
-      staticPos: [117.244548, 40.21395],
-      flyHeight: 300,
-      multiplier: 2,
-      pathWidth: 3,
-      flySpeed: 50,
-      pathShow: !!1,
-      pathLeadTime: 0,
-      pathTrailTime: 60,
-      modelUrl: 'E:/sampledata/model/CesiumAir/Cesium_Air.gltf'
-
-    };
-    // measureLineSpace(this.viewer)
-    console.log("startfly [this,this.flyTool,target]="  ,[this,this.flyTool,target])
-    this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
-    //this.drawTool["destory"];
-    this.flyTool["runFlyOnPath"](flyOption);
-  })
-  // this.eventbus.$on('dropDown', itemName => {
-  //
-  //   console.info(`itemname ${itemName}`)
-  // })
+  this.dataManager = new LayerManagerEventHandler(this)
 }
-/**
- * @time: 2018/8/30下午1:44
- * @author:QingMings(1821063757@qq.com)
- * @desc: 添加 3dTileSet
- *
- */
-iez3d.prototype.add3DTileSet = function (url, callBack) {
-  let tileSet = new Cesium.Cesium3DTileset({
-    url: url,
-    maximumScreenSpaceError: isMobile() ? 8 : 1,
-    maximumNumberOfLoadedTiles: isMobile() ? 10 : 500
-  })
-  tileSet.readyPromise.then(callBack).otherwise(err => {
-    this.error(err)
-  })
-}
-/**
- * @time: 2018/9/3下午1:48
- * @author:QingMings(1821063757@qq.com)
- * @desc: 添加 Wmts 图层
- *
- */
-iez3d.prototype.addWmtsImageryProvider = function ({title, serviceUrl, style, format, tileMatrixSetID, show}, callback) {
-  let layer = this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
-    url: serviceUrl,
-    layer: title,
-    style: style,
-    format: format,
-    tileMatrixSetID: tileMatrixSetID,
-    show: show
-  }))
-  callback(layer)
-}
+
 /**
  * @time: 2018/8/30下午2:04
  * @author: QingMings(1821063757@qq.com)
@@ -510,5 +235,24 @@ iez3d.prototype.test = function (url, height) {
     }
   })
   this.viewer.trackedEntity = entity
+}
+// 事件处理程序集合
+iez3d.prototype.eventHandler = function () {
+  this.layerManager()
+  this.screenshotsSupport()
+}
+// 场景截图事件监听
+iez3d.prototype.screenshotsSupport = function () {
+  this.eventbus.$on(Event.ScreenShots, () => {
+    this.screenshots()
+  })
+}
+// 场景截图
+iez3d.prototype.screenshots = function () {
+  let canvas = this.scene.canvas
+  // const ctx = canvas.getContext('2d')
+  canvas.toBlob(blob => {
+    FileSaver.saveAs(blob, '场景截图.png')
+  })
 }
 export default iez3d

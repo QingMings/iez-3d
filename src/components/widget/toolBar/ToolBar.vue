@@ -8,7 +8,9 @@
                     <Icon type="md-switch"/>
                 </Button>
                 <div class="layer-manager-dropDown" :class="{'layer-manager-dropDown-visible':layerManagerVisible }">
-                    <div class="layerManagerTitle">图层管理</div>
+                    <div class="layerManagerTitle"><span>图层管理</span>
+                        <!--<Button size="small">固定<image src="static/pin-diagonal-tool-of-black-shape.png"></image></Button>-->
+                    </div>
                     <Tree :data="configData" ref="layerManagerTree" show-checkbox class="layer-manager-tree"
                           @on-node-check="onTreeItemChecked" @on-node-select="onTreeItemSelected"></Tree>
                 </div>
@@ -36,6 +38,7 @@
                         <DropdownItem  name="FloodAnalysis">淹没分析</DropdownItem>
                         <DropdownItem  name="ShadowAnalysis">阴影分析</DropdownItem>
                         <DropdownItem  name="HorizonsAnalysis">可视域分析</DropdownItem>
+                        <DropdownItem name="screenShots">场景截图</DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
             </div>
@@ -54,7 +57,8 @@
     </div>
 </template>
 <script type="text/javascript">
-import {closeSupport, hasChild,openDia} from '../../../utils/util'
+
+import {closeSupport, dataProcess, hasChild,openDia} from '../../../utils/util'
 import Coordinates from '../../../views/coordinates'
 import Location from '../functionvue/Location'
 import SectionAnalysis from '../functionvue/SectionAnalysis'
@@ -89,7 +93,7 @@ export default {
     return {
       visible: false,
       layerManagerVisible: false,
-      configData: MapConfig
+      configData: dataProcess(MapConfig)
     }
   },
   computed: {
@@ -148,7 +152,9 @@ export default {
         case 'HorizonsAnalysis':
           openDia("#horizons","可视域分析");
           break;
-
+        case 'screenShots':
+          eventBus.$emit(Event.ScreenShots,{})
+          break
       }
 
       // console.info(itemName)
@@ -157,11 +163,6 @@ export default {
     ...mapActions({
       isShowDia: 'increment' // 将 `this.add()` 映射为 `this.$store.dispatch('increment')`
     }),
-    showDialog: function (a) {
-      this.$nextTick(() => {
-        this.$modal.show('coordinatesGo', null, {draggable: true})
-      })
-    },
     shareTest: function () {
       eventBus.$emit('startmeasure');
             // layer.alert("helloWorld");
@@ -191,12 +192,11 @@ export default {
       // const node = selectedList[selectedList.length - 1]
       // console.info(node.title)
     },
-    onTreeItemChecked ({node, checked}) {
+    onTreeItemChecked ({node, checked, parent}) {
       if (hasChild(node)) {
-        console.info('checked')
-        eventBus.$emit(Event.ShowChildData, {node: node, checked: checked})
+        eventBus.$emit(Event.ShowChildData, {node: node, checked: checked, parent: parent})
       } else {
-        eventBus.$emit(Event.ShowData, {node: node, checked: checked})
+        eventBus.$emit(Event.ShowData, {node: node, checked: checked, parent: parent})
       }
     },
     onTreeItemSelected (node) {
