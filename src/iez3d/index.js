@@ -12,6 +12,8 @@ import LayerManagerEventHandler from './eventhandler/LayerManagerEventHandler'
 import {Event} from '../utils/constant'
 import FileSaver from 'file-saver'
 
+
+
 /**
  *@time: 2018/8/10上午9:48
  *@author:QingMings(1821063757@qq.com)
@@ -22,6 +24,9 @@ import FileSaver from 'file-saver'
 const iez3d = function (options) {
   // 初始化 量测工具
   // CesiumMeasure.init()
+  //   MeasureUtilNew.moduleDef();
+    //初始化模拟飞行
+    // FlyManTool.moduleDef();
   this.init(options)
 }
 
@@ -46,10 +51,15 @@ iez3d.prototype.init = function (options) {
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
   // this.drawTool = new Cesium.DrawTool({
-  //   viewer: this.viewer,
-  //   isMeasure: true,
-  //   isClampGround: true
+  //     contextObj: this.viewer,
+  //     useMea: true,
+  //     useClampGrd: true
   // })
+  // this.flyTool = new Cesium.FlyManTool({
+  //   contextObj: this.viewer
+  // });
+
+
 
   // 显示帧率
   if (Cesium.defined(options.viewerOptions.geocoder) && (options.viewerOptions.geocoder instanceof LocalGeocoder)) {

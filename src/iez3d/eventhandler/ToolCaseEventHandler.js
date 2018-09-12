@@ -13,6 +13,32 @@ export default class ToolCaseEventHandler {
     this.init()
   }
   init() {
+    this.eventbus.$on('startmeasure', target => {
+      // measureLineSpace(this.viewer)
+      console.log("startmeasure [this,this.drawTool,target]="  ,[this,this.drawTool,target])
+      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
+      //this.drawTool["destory"];
+      this.drawTool["route_DrS"]();
+    })
+    this.eventbus.$on('startfly', target => {
+      var flyOption = {
+        pathGeoJsonUrl: 'E:/sampledata/map97geo.json',
+        staticPos: [117.244548, 40.21395],
+        flyHeight: 300,
+        multiplier: 2,
+        pathWidth: 3,
+        flySpeed: 50,
+        pathShow: !!1,
+        pathLeadTime: 0,
+        pathTrailTime: 60,
+        modelUrl: 'E:/sampledata/model/CesiumAir/Cesium_Air.gltf'
 
+      };
+      // measureLineSpace(this.viewer)
+      console.log("startfly [this,this.flyTool,target]="  ,[this,this.flyTool,target])
+      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
+      //this.drawTool["destory"];
+      this.flyTool["runFlyOnPath"](flyOption);
+    })
   }
 }
