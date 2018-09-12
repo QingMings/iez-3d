@@ -70,8 +70,26 @@ export const info = message => {
 export const hasChild = node => {
   return (node.children != undefined && node.children.length > 0)
 }
+/**
+ * 弹框
+ * @param openid div id
+ * @param titleName 标题名称
+ */
+export const openDia=function (openid,titleName) {
+  layer.open({
+    type: 1 //Page层类型
+    //,area: ['500px', '300px']
+    ,title: titleName
+    ,shade: 0 ,//遮罩透明度
+    // ,maxmin: true //允许全屏最小化
+    offset: ['70px', '150px']
+    ,anim: 1 //0-6的动画形式，-1不开启
+    ,content: $(openid)
+  });
+}
 
 export default {
   closeSupport,
-  isMobile
+  isMobile,
+  openDia
 }

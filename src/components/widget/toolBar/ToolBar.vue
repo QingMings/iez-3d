@@ -16,9 +16,8 @@
             <Button shape="circle" title="底图设置" @click="shareTest" class="ivu-btn-circle ivu-btn-icon-only">
                 <Icon type="ios-map"/>
             </Button>
-            <!--常用工具-->
             <div ref="dropDownwrapper" class="dropDownwrapper">
-                <Dropdown trigger="custom" @on-click="showDialog" :visible="visible" placement="bottom-start">
+                <Dropdown trigger="custom" @on-click="openDialog" :visible="visible" placement="bottom-start">
                     <Button shape="circle" title="常用工具" @click="dropDownHandler"
                             class="ivu-btn-circle ivu-btn-icon-only">
                         <Icon type="ios-hammer"/>
@@ -28,33 +27,75 @@
                     <!--<DropdownItem><span>{{tool}}}</span></DropdownItem>-->
                     <!--</DropdownMenu>-->
                     <DropdownMenu slot="list" class="iez-dropMenu">
-                        <DropdownItem name="coordinates">坐标定位</DropdownItem>
+                        <DropdownItem  name="coordinates" >坐标定位</DropdownItem>
+                        <DropdownItem  name="measure">图上量算</DropdownItem>
+                        <DropdownItem  name="flight">飞行漫游</DropdownItem>
+                        <DropdownItem  name="MyMark">我的标记</DropdownItem>
+                        <DropdownItem  name="Mapping">图上标绘</DropdownItem>
+                        <DropdownItem  name="SectionAnalysis">剖面分析</DropdownItem>
+                        <DropdownItem  name="FloodAnalysis">淹没分析</DropdownItem>
+                        <DropdownItem  name="ShadowAnalysis">阴影分析</DropdownItem>
+                        <DropdownItem  name="HorizonsAnalysis">可视域分析</DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
             </div>
         </div>
-        <coordinates></coordinates>
+        <Location ></Location>
+        <Measure ></Measure>
+        <SectionAnalysis ></SectionAnalysis>
+        <!--<coordinates></coordinates>-->
+        <MyMark ></MyMark>
+        <Mapping ></Mapping>
+        <Flight ></Flight>
+        <FloodAnalysis></FloodAnalysis>
+        <ShadowAnalysis></ShadowAnalysis>
+        <HorizonsAnalysis></HorizonsAnalysis>
+        <!--<test></test>-->
     </div>
 </template>
 <script type="text/javascript">
-import {closeSupport, hasChild} from '../../../utils/util'
+import {closeSupport, hasChild,openDia} from '../../../utils/util'
 import Coordinates from '../../../views/coordinates'
-// import 'jquery'
-// import 'vue-ztreev3/js/jquery.ztree.all'
-// import 'vue-ztreev3/css/zTreeStyle/zTreeStyle.css'
+import Location from '../functionvue/Location'
+import SectionAnalysis from '../functionvue/SectionAnalysis'
+import FloodAnalysis from '../functionvue/FloodAnalysis'
+import ShadowAnalysis from '../functionvue/ShadowAnalysis'
+import HorizonsAnalysis from '../functionvue/HorizonsAnalysis'
+import MyMark from '../functionvue/MyMark'
+import Measure from '../functionvue/Measure'
+import Mapping from '../functionvue/Mapping'
+import Flight from '../functionvue/Flight'
 import {MapConfig} from '../../../iez3d/layers/MapConfig'
 import {eventBus} from '../../eventbus/EventBus'
+import {mapGetters} from 'vuex'
+import { mapActions } from 'vuex'
+import { mapMutations } from 'vuex'
 import {Event} from '../../../utils/constant'
-
+// import {openDia} from '../../../utils/openLayer'
 export default {
   name: 'ToolBar',
-  components: {Coordinates},
+  components: { Coordinates ,
+    Location,
+    Measure,
+    SectionAnalysis,
+    MyMark,
+    Mapping,
+    Flight,
+    FloodAnalysis,
+    ShadowAnalysis,
+    HorizonsAnalysis
+  },
   data () {
     return {
       visible: false,
       layerManagerVisible: false,
       configData: MapConfig
     }
+  },
+  computed: {
+    ...mapGetters({
+      isShow:'getVis'
+    }),
   },
   mounted () {
     closeSupport(this.dropDownCloseSupport)
@@ -64,6 +105,9 @@ export default {
     })
   },
   methods: {
+    ...mapMutations({
+      addMsg: 'increment' // 将 `this.add()` 映射为 `this.$store.commit('increment')`
+    }),
     dropDownHandler: function () {
       this.visible = !this.visible
     },
@@ -74,14 +118,53 @@ export default {
         }
       }
     },
+    openDialog : function(itemName){
+      switch (itemName) {
+        case 'coordinates':
+          openDia("#location","坐标定位");
+          //openDia("#test");
+          break;
+        case 'flight':
+          openDia("#flight","飞行漫游");
+          break;
+        case 'MyMark':
+          openDia("#mymark","我的标记");
+        break;
+        case 'Mapping':
+          openDia("#mapping","图上标绘");
+          break;
+        case 'SectionAnalysis':
+          openDia("#sectionanalysis","剖面分析");
+          break;
+        case 'FloodAnalysis':
+          openDia("#flood","淹没分析");
+          break;
+        case 'ShadowAnalysis':
+          openDia("#shadow","阴影分析");
+          break;
+        case 'measure':
+          openDia("#measure","图上量算");
+          break;
+        case 'HorizonsAnalysis':
+          openDia("#horizons","可视域分析");
+          break;
+
+      }
+
+      // console.info(itemName)
+      // this.$store.dispatch("increment");
+    },
+    ...mapActions({
+      isShowDia: 'increment' // 将 `this.add()` 映射为 `this.$store.dispatch('increment')`
+    }),
     showDialog: function (a) {
       this.$nextTick(() => {
         this.$modal.show('coordinatesGo', null, {draggable: true})
       })
     },
     shareTest: function () {
-      // layer.alert('HelloWorld')
-      eventBus.$emit('startmeasure','line')
+      eventBus.$emit('startmeasure');
+            // layer.alert("helloWorld");
     },
     mytest: function () {
 

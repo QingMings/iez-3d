@@ -12,7 +12,9 @@ import {getImageLayers, getModelLayers, getSubDatas, localLayers} from './layers
 import {DataType, Event, SubDataFormat, SubDataType} from '../utils/constant'
 import {measureLineSpace} from '../utils/measure'
 import MeasureUtilNew from '../utils/MeasureUtilNew'
+import FlyManTool from '../utils/FlyManUtil_VUE'
 import JsonDataSource from './JsonDataSource'
+
 
 /**
  *@time: 2018/8/10上午9:48
@@ -25,6 +27,8 @@ const iez3d = function (options) {
   // 初始化 量测工具
   // CesiumMeasure.init()
     MeasureUtilNew.moduleDef();
+    //初始化模拟飞行
+    FlyManTool.moduleDef();
   this.init(options)
 }
 
@@ -52,6 +56,9 @@ iez3d.prototype.init = function (options) {
       useMea: true,
       useClampGrd: true
   })
+  this.flyTool = new Cesium.FlyManTool({
+    contextObj: this.viewer
+  });
 
 
 
@@ -407,6 +414,30 @@ iez3d.prototype.layerManager = function () {
       //this.drawTool["destory"];
       this.drawTool["route_DrS"]();
   })
+  this.eventbus.$on('startfly', target => {
+    var flyOption = {
+      pathGeoJsonUrl: 'E:/sampledata/map97geo.json',
+      staticPos: [117.244548, 40.21395],
+      flyHeight: 300,
+      multiplier: 2,
+      pathWidth: 3,
+      flySpeed: 50,
+      pathShow: !!1,
+      pathLeadTime: 0,
+      pathTrailTime: 60,
+      modelUrl: 'E:/sampledata/model/CesiumAir/Cesium_Air.gltf'
+
+    };
+    // measureLineSpace(this.viewer)
+    console.log("startfly [this,this.flyTool,target]="  ,[this,this.flyTool,target])
+    this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK) // 删除默认事件 destory
+    //this.drawTool["destory"];
+    this.flyTool["runFlyOnPath"](flyOption);
+  })
+  // this.eventbus.$on('dropDown', itemName => {
+  //
+  //   console.info(`itemname ${itemName}`)
+  // })
 }
 /**
  * @time: 2018/8/30下午1:44
