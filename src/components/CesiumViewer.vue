@@ -36,7 +36,13 @@ export default {
         timeline: false,
         baseLayerPicker: false,
         animation: false,
-        geocoder: new LocalGeocoder()
+        geocoder: new LocalGeocoder(),
+        contextOptions: {
+          webgl: {
+            // support screenshots
+            preserveDrawingBuffer: true
+          }
+        }
       },
       naviOptions: {
 

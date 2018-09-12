@@ -47,12 +47,12 @@ export default class JsonDataSource extends Cesium.CustomDataSource {
       name = Cesium.getFilenameFromUri(sourceUri)
     }
     if (Cesium.defined(name) && that._name !== name) {
-      that._name = name
+      that._name = that._name === undefined ? name : that._name
       that._changed.raiseEvent(that)
     }
     let typeHandler = that.jsonObjectTypes[options.dataType]
     if (!Cesium.defined(typeHandler)) {
-      throw new RuntimeError('Unsupportd dataType: ' + options.dataType)
+      throw new Cesium.RuntimeError('Unsupportd dataType: ' + options.dataType)
     }
     return Cesium.when(json, json => {
       that._entityCollection.removeAll()
@@ -87,47 +87,48 @@ export default class JsonDataSource extends Cesium.CustomDataSource {
    *
    */
   createPolygon (dataSource, polygon, alpha) {
-    console.info(polygon.name)
     if (!Cesium.defined(polygon)) {
       return
     }
     const polyJsonStr = polygon.polyJson
     const polyptArr = JSON.parse(polyJsonStr)
     let polygonGraphics = new Cesium.PolygonGraphics()
-    polygonGraphics.outline = new Cesium.ConstantProperty(true)
+    // polygonGraphics.outline = new Cesium.ConstantProperty(true)
     polygonGraphics.material = new Cesium.ColorMaterialProperty(Cesium.Color.RED.withAlpha(alpha))
-    polygonGraphics.hierarchy = dataSource.buildCartesianArray(polyptArr)
+    polygonGraphics.hierarchy = JsonDataSource.buildCartesianArray(polyptArr)
 
-    let entity = dataSource.createObject(polygon, dataSource._entityCollection)
+    let entity = JsonDataSource.createObject(polygon, dataSource._entityCollection)
     entity.polygon = polygonGraphics
     let properties = {}
     properties.type = polygon.objType
     properties.areaId = polygon.areaId
-    if (polygon.objType !== 2) {
-      properties.potId = polygon.potId
-    }
-    if (polygon.objType === 2) {
-      entity.polygon.height = polygon.offsetHeight
-      entity.polygon.extrudedHeight = polygon.extrudedHeight
+    switch (polygon.objType) {
+      case 0:
+        properties.potId = polygon.potId
+        entity.polygon.classificationType = Cesium.ClassificationType.CESIUM_3D_TILE
+        break
+      case 2:
+        entity.polygon.height = Number(polygon.offsetHeight)
+        entity.polygon.extrudedHeight = Number(polygon.extrudeHeight)
     }
     entity.properties = properties
-
   }
 
-  buildCartesianArray (polyptArr) {
+  static buildCartesianArray (polyptArr) {
     let positions = new Array(polyptArr.length)
-    for (var i = 0; i < polyptArr.length; i++) {
+    for (let i = 0; i < polyptArr.length; i++) {
       positions[i] = Cesium.Cartesian3.fromElements(polyptArr[i].x, polyptArr[i].y, polyptArr[i].z)
     }
     return positions
   }
 
-  createObject (json, entityCollection) {
-    var id = json.guid
+  // 创建实体对象，copy子 geoJsonDataSource,
+  static createObject (json, entityCollection) {
+    let id = json.guid
     if (!Cesium.defined(id)) {
-      id = createGuid()
+      id = Cesium.createGuid()
     } else {
-      var i = 2
+      let i = 2
       var finalId = id
       while (Cesium.defined(entityCollection.getById(finalId))) {
         finalId = id + '_' + i
@@ -136,7 +137,7 @@ export default class JsonDataSource extends Cesium.CustomDataSource {
       id = finalId
     }
 
-    var entity = entityCollection.getOrCreateEntity(id)
+    let entity = entityCollection.getOrCreateEntity(id)
     entity.name = json.name
     return entity
   }
@@ -145,4 +146,3 @@ export default class JsonDataSource extends Cesium.CustomDataSource {
     return this.name + '_JsonDataSource'
   }
 }
-
