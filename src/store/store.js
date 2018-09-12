@@ -13,13 +13,24 @@ export default new Vuex.Store({
     commonModule
   },
   state: {
-
+    visible:false,
+  },
+  getters : {
+    getVis:state=>{
+      return state.visible;
+    }
   },
   mutations: {
+    increment (state) {
+      // 变更状态
+      state.visible=!state.visible;
 
+    }
   },
   actions: {
-
+    increment (context) {
+      context.commit('increment')
+    }
   }
 
 })
