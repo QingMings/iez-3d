@@ -8,8 +8,9 @@ import CesiumToolBarExtend from '../components/widget/ToolBarExtend/CesiumToolBa
 import imageryViewModels from './layers/DefaultImageryProvider'
 import {eventBus} from '../components/eventbus/EventBus'
 import {error, info} from '../utils/util'
-import {measureLineSpace} from '../utils/measure'
-import LayerManager from './LayerManager'
+import LayerManagerEventHandler from './eventhandler/LayerManagerEventHandler'
+import {Event} from '../utils/constant'
+import FileSaver from 'file-saver'
 
 /**
  *@time: 2018/8/10上午9:48
@@ -38,6 +39,7 @@ iez3d.prototype.init = function (options) {
   // 设置默认视图矩形
   this.defaultViewRectangle(73, 4, 135, 53)
   this.viewer = new Cesium.Viewer(options.container, options.viewerOptions)
+  this.options = options
   this.camera = this.viewer.camera
   this.scene = this.viewer.scene
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
@@ -72,7 +74,7 @@ iez3d.prototype.init = function (options) {
   console.info(this.imageryLayers)
   // this.addTdtImgAnnoLayer()
   this.baseLayerPicker()
-  this.layerManager()
+  this.eventHandler()
   // this.test('data/Cesium_Air.gltf', 5000.0)
 }
 
@@ -126,9 +128,6 @@ iez3d.prototype.addTdtImgAnnoLayer = function () {
   }))
 }
 
-iez3d.prototype.addTdtGlogalImageLayer = function () {
-
-}
 /**
  * @time: 2018/8/23上午11:38
  * @author:QingMings(1821063757@qq.com)
@@ -185,27 +184,9 @@ iez3d.prototype.showLatLonHeightProprety = function () {
  *
  */
 iez3d.prototype.layerManager = function () {
-  this.dataManager = new LayerManager(this)
+  this.dataManager = new LayerManagerEventHandler(this)
 }
 
-
-/**
- * @time: 2018/9/3下午1:48
- * @author:QingMings(1821063757@qq.com)
- * @desc: 添加 Wmts 图层
- *
- */
-iez3d.prototype.addWmtsImageryProvider = function ({title, serviceUrl, style, format, tileMatrixSetID, show}, callback) {
-  let layer = this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
-    url: serviceUrl,
-    layer: title,
-    style: style,
-    format: format,
-    tileMatrixSetID: tileMatrixSetID,
-    show: show
-  }))
-  callback(layer)
-}
 /**
  * @time: 2018/8/30下午2:04
  * @author: QingMings(1821063757@qq.com)
@@ -244,5 +225,24 @@ iez3d.prototype.test = function (url, height) {
     }
   })
   this.viewer.trackedEntity = entity
+}
+// 事件处理程序集合
+iez3d.prototype.eventHandler = function () {
+  this.layerManager()
+  this.screenshotsSupport()
+}
+// 场景截图事件监听
+iez3d.prototype.screenshotsSupport = function () {
+  this.eventbus.$on(Event.ScreenShots, () => {
+    this.screenshots()
+  })
+}
+// 场景截图
+iez3d.prototype.screenshots = function () {
+  let canvas = this.scene.canvas
+  // const ctx = canvas.getContext('2d')
+  canvas.toBlob(blob => {
+    FileSaver.saveAs(blob, '场景截图.png')
+  })
 }
 export default iez3d

@@ -14,7 +14,9 @@ const Event = {
   // FlyTo 事件
   FlyToData: 'flyToData',
   // ZoomTo 事件
-  ZoomToData: 'zoomToData'
+  ZoomToData: 'zoomToData',
+  // screenshots 截图
+  ScreenShots: 'screenShots'
 }
 // 子数据类型
 const SubDataType={

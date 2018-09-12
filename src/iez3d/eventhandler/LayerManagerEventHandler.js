@@ -1,9 +1,9 @@
 import Cesium from 'cesium/Cesium'
-import {DataType, Event, SubDataFormat, SubDataType} from '../utils/constant'
+import {DataType, Event, SubDataFormat, SubDataType} from '../../utils/constant'
 import Vue from 'vue'
-import {getModelLayers, getSubData, getSubDatas, localLayers} from './layers/localLayers'
-import {isMobile, subDataGen} from '../utils/util'
-import JsonDataSource from './JsonDataSource'
+import {getImageLayers, getModelLayers, getSubData, getSubDatas, localLayers} from '../layers/localLayers'
+import {isMobile, subDataGen} from '../../utils/util'
+import JsonDataSource from '../JsonDataSource'
 
 /**
  * @time: 2018/9/11下午4:55
@@ -11,7 +11,7 @@ import JsonDataSource from './JsonDataSource'
  * @desc: 数据管理类 提供对数视图点击操作做对应的响应
  * @param {iez3d} iez3d 实例对象
  */
-export default class LayerManager {
+export default class LayerManagerEventHandler {
   constructor (iez3d) {
     if (!Cesium.defined(iez3d)) {
       throw new Cesium.DeveloperError('iez3d 参数是必须的')
@@ -24,10 +24,11 @@ export default class LayerManager {
     this.iez3d = iez3d
     this.init()
   }
+
   // 初始化 事件监听
   init () {
     const that = this
-    //
+    // 有子节点的 node 的监听
     this.eventbus.$on(Event.ShowChildData, ({node, checked, parent}) => {
       switch (node.type) {
         case DataType.category:
@@ -46,14 +47,18 @@ export default class LayerManager {
 
           break
         case DataType.imageryData:
-
+          if (checked) {
+            that.addImageryLayer(node)
+          } else {
+            that.hideImageryLayer(node)
+          }
           break
         case DataType.subData:
           that.loadSubData({node: node, parent: parent})
           break
       }
     })
-
+    // 没有子节点的 node 的监听
     this.eventbus.$on(Event.ShowData, ({node, checked, parent}) => {
       switch (node.type) {
         case DataType.modelData:
@@ -64,6 +69,11 @@ export default class LayerManager {
           }
           break
         case DataType.imageryData:
+          if (checked) {
+            that.addImageryLayer(node)
+          } else {
+            that.hideImageryLayer(node)
+          }
           break
         case DataType.subData:
           if (checked) {
@@ -158,7 +168,7 @@ export default class LayerManager {
                   // TODO 这里可以用于处理实体hover 显示dom 事件
                 }).otherwise(error => {
                   this.error(error)
-                  Vue.set(node,'disabled',true)
+                  Vue.set(node, 'disabled', true)
                 })
               }
               break
@@ -178,7 +188,7 @@ export default class LayerManager {
                   let subdata = subDataGen(node, subDatas, dataSource)
                 }).otherwise(err => {
                   this.error(err)
-                  Vue.set(node,'disabled',true)
+                  Vue.set(node, 'disabled', true)
                 })
               }
           }
@@ -258,8 +268,49 @@ export default class LayerManager {
       this.error(err)
     })
   }
+  // 加载 图层选项
+  addImageryLayer = function (target) {
+    const imageLayer = getImageLayers(target)
+    if (imageLayer.length > 0) {
+      imageLayer[0].layer.show = true
+    } else {
+      switch (target.layerType) {
+        case 'wmts':
+          this.addWmtsImageryProvider(target, layer => {
+            localLayers.imageLayers.push({title: target.title, layer: layer})
+          })
+          break
+      }
+    }
+  }
+
+  hideImageryLayer = function (target) {
+    const imageLayer = getImageLayers(target)
+    if (imageLayer.length > 0) {
+      imageLayer[0].layer.show = false
+    }
+  }
+  /**
+   * @time: 2018/9/3下午1:48
+   * @author:QingMings(1821063757@qq.com)
+   * @desc: 添加 Wmts 图层
+   *
+   */
+  addWmtsImageryProvider = function ({title, serviceUrl, style, format, tileMatrixSetID, show}, callback) {
+    let layer = this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
+      url: serviceUrl,
+      layer: title,
+      style: style,
+      format: format,
+      tileMatrixSetID: tileMatrixSetID,
+      show: show
+    }))
+    callback(layer)
+  }
+
   // 错误提示
-  error(err){
+  error (err) {
     this.iez3d.error(err)
   }
+
 }

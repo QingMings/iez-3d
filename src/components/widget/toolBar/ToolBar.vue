@@ -8,7 +8,9 @@
                     <Icon type="md-switch"/>
                 </Button>
                 <div class="layer-manager-dropDown" :class="{'layer-manager-dropDown-visible':layerManagerVisible }">
-                    <div class="layerManagerTitle">图层管理</div>
+                    <div class="layerManagerTitle"><span>图层管理</span>
+                        <!--<Button size="small">固定<image src="static/pin-diagonal-tool-of-black-shape.png"></image></Button>-->
+                    </div>
                     <Tree :data="configData" ref="layerManagerTree" show-checkbox class="layer-manager-tree"
                           @on-node-check="onTreeItemChecked" @on-node-select="onTreeItemSelected"></Tree>
                 </div>
@@ -29,6 +31,7 @@
                     <!--</DropdownMenu>-->
                     <DropdownMenu slot="list" class="iez-dropMenu">
                         <DropdownItem name="coordinates">坐标定位</DropdownItem>
+                        <DropdownItem name="screenShots">场景截图</DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
             </div>
@@ -74,10 +77,12 @@ export default {
         }
       }
     },
-    showDialog: function (a) {
-      this.$nextTick(() => {
-        this.$modal.show('coordinatesGo', null, {draggable: true})
-      })
+    showDialog: function (dropDownItemName) {
+      switch (dropDownItemName) {
+        case 'screenShots':
+          eventBus.$emit(Event.ScreenShots,{})
+          break
+      }
     },
     shareTest: function () {
       // layer.alert('HelloWorld')
