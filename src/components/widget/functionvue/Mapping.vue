@@ -1,22 +1,15 @@
 <template>
-    <div class="dialog-wrap " id="mapping">
-        <div  style="height: 500px" >
+    <div class="dialog-wrap " id="mapping" style="width:360px">
+        <div>
             <div>
-                <Button type="primary" ghost @click="" title="打开文件"><Icon type="ios-folder-open" /></Button>
-                <Button type="primary" ghost @click="" title="叠加文件"><Icon type="ios-albums" /></Button>
-                <Button type="primary" ghost @click="" title="保存文件"><Icon type="md-bookmark" /></Button>
-                <Button type="error" ghost title="清空标绘"><Icon type="ios-trash-outline" /></Button>
-                <Button type="error" ghost title="是否可编辑"><Icon type="md-lock" /></Button>
-                <Button type="error" ghost title="是否可编辑" v-if="iss"><Icon type="md-unlock" /></Button>
+                <Button type="primary" ghost @click="PointClick">点标注</Button>
+                <Button type="primary" ghost @click="LineClick">线标注</Button>
+                <Button type="primary" ghost @click="PolygonClick">面标注</Button>
+                <Button type="primary" ghost @click="TitleClick">文字标注</Button>
+                <Button type="error" ghost @click="ClearClick">清除</Button>
             </div>
-            <Divider />
-            <div>
-                 <Select class="input">
-                <Option v-for="item in typeList" :value="item.value" :key="item.value">
-                    {{ item.label }}
-                </Option>
-            </Select>
-              <div></div>
+            <div style="margin-top: 5px">
+                修改文字标注：<input class="input"  v-on:change="ChangeTitle" v-model="valueTitle"/>
             </div>
             <!--<p class="dialog-close" @click="closeDialog">x</p>-->
         </div>
@@ -25,34 +18,43 @@
 
 <script>
   import PanelTable from 'iview/src/components/date-picker/base/mixin'
+  import {eventBus} from '../../eventbus/EventBus'
+  import {mapGetters} from 'vuex'
+  import {MarkType, ToolsEvent} from '../../../iez3d/eventhandler/ToolCaseEventHandler'
   export default {
     name: 'Mapping',
     components: {PanelTable},
     data(){
       return {
         iss:false,
-        typeList:[
-          {
-            label:'常用标号',
-            value :'default'
-          },
-          {
-            label:'图标点',
-            value:'IconPoint'
-          },
-          {
-            label:'模型',
-            value:'model'
-          }
-        ],
+        valueTitle:'文字'
       }
     },
+    computed: {
+      // 使用对象展开运算符将 getter 混入 computed 对象中
+      ...mapGetters('settingModule', {
+        getEnableTerrain: 'getEnableTerrain'
+      })
+    },
     methods: {
-      closeDialog:function(){
-        //this.isvisible=!this.isvisible;
-        // easyDialog.close();
+      PointClick:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.Point,status: this.getEnableTerrain});
+      },
+      LineClick:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.Line,status: this.getEnableTerrain});
+      },
+      PolygonClick:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.Polygon,status: this.getEnableTerrain});
+      },
+      TitleClick:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.Title,status: this.getEnableTerrain});
+      },
+      ClearClick:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.Clear,status: this.getEnableTerrain});
+      },
+      ChangeTitle:function(){
+        eventBus.$emit(ToolsEvent.Mapping,{type: MarkType.ChangeTitle,status: this.getEnableTerrain,val:this.valueTitle});
       }
-
     },
   }
 </script>

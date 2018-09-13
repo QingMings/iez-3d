@@ -27,7 +27,10 @@ export default {
         case 0:
           return state.settings.enableTerrain
       }
-    }
+    },
+    getEnableTerrain: (state) => {
+      return state.settings.enableTerrain
+    },
   },
   actions: {
 
