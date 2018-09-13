@@ -26,12 +26,12 @@
 
 // 下拉菜单
 .iez-dropMenu-style {
-  border-left: 1px solid rgba(2, 2, 2, 0.4);
+  //border-left: 1px solid rgba(2, 2, 2, 0.4);
   color: #ffffff;
   // 鼠标悬浮
   &:hover {
     background: rgba(2, 2, 2, 0.4);
-    border-left: 1px solid @default-border-color;
+    //border-left: 1px solid @default-border-color;
   }
 }
 // 覆盖 iview 下拉菜单样式
@@ -42,8 +42,10 @@
 }
 // 下拉项 覆盖 iview 下拉项样式
 .ivu-dropdown-item-style() {
+  border-left: 1px solid rgba(2, 2, 2, 0.4);
   color: #ffffff;
   &:hover {
+    border-left: 1px solid @default-border-color;
     background: rgba(103, 103, 103, 0.4);
     color: #ffffff;
   }

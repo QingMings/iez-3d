@@ -2,7 +2,7 @@
     <span class="iez-toolbar-right">
         <!--cesium toolbar 扩展-->
         <div class="iez-toolbar-ext">
-            <div  class="iez-baseLayers-wrapper">
+            <div class="iez-baseLayers-wrapper">
                 <div id="BaseLayersPicker"></div>
             </div>
             <!--用户头像-->
@@ -49,7 +49,7 @@ export default {
   components: {LoginModal},
   data () {
     return {
-      settings: ['热点标注', '建筑标注'],
+      settings: ['开启地形'],
       settingVisible: false,
       userVisible: false
     }
@@ -70,6 +70,9 @@ export default {
 
     ...mapMutations('userModule', {
       resetUser: 'resetUser'
+    }),
+    ...mapMutations('settingModule', {
+      enableTerrain: 'enableTerrain'
     }),
     /**
      *@time: 2018/8/14下午3:39
@@ -101,7 +104,11 @@ export default {
      *
      */
     switchChange: function (data, status) {
-
+      switch (data) {
+        case this.settings[0]:
+          this.enableTerrain(status)
+          break
+      }
     },
     /**
      *@time: 2018/8/14下午3:43
