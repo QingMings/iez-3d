@@ -22,7 +22,12 @@ export default class LayerManagerEventHandler {
     this.handler = iez3d.handler
     this.eventbus = iez3d.eventbus
     this.iez3d = iez3d
+    this.defaultEntityAlpha = 0.005
+    this.highlightEntityAlpha = 0.5
+
     this.init()
+    this.highlightSupport()
+    this.selectedSupport()
   }
 
   // 初始化 事件监听
@@ -313,4 +318,110 @@ export default class LayerManagerEventHandler {
     this.iez3d.error(err)
   }
 
+  highlightSupport () {
+    this.highlighted = {
+      feature: undefined,
+      originalColor: Cesium.Color.RED.withAlpha(this.defaultEntityAlpha)
+    }
+    let pickId
+    let PolygonNameOverlay = document.createElement('div')
+    this.viewer.container.appendChild(PolygonNameOverlay)
+    this.defaultNameOverlayStyle(PolygonNameOverlay)
+    let BillboardNameOverlay = document.createElement('div')
+    this.viewer.container.appendChild(BillboardNameOverlay)
+    this.defaultNameOverlayStyle(BillboardNameOverlay)
+    // selected Entity
+    let selected = {
+      feature: undefined,
+      originalColor: new Cesium.Color()
+    }
+
+    this.handler.setInputAction(movement => {
+      if (this.scene.mode !== Cesium.SceneMode.MORPHING) {
+        const pickedObject = this.scene.pick(movement.endPosition)
+        if (this.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
+          const pickEntity = Cesium.defaultValue(pickedObject.id, pickedObject.primitive.id)
+          if (Cesium.defined(pickEntity)) {
+            if (pickEntity instanceof Cesium.Entity && pickEntity.billboard) {
+              this.highlightReset()
+              this.updateNameOverlayStyle(BillboardNameOverlay, movement)
+              let name = Cesium.defaultValue(pickEntity.name, pickEntity.id)
+              BillboardNameOverlay.textContent = name
+              hidePolygonNameOverlay()
+            } else if (pickEntity instanceof Cesium.Entity && pickEntity.polygon) {
+              this.highlightReset()
+              this.updateNameOverlayStyle(PolygonNameOverlay, movement)
+              let name = Cesium.defaultValue(pickEntity.name, pickEntity.id)
+              PolygonNameOverlay.textContent = name
+              this.highlightedEntity(pickEntity)
+              hideBillboardNameOverlay()
+            }
+          } else {
+            hideNameOverlay()
+          }
+        } else {
+          hideNameOverlay()
+        }
+      }
+    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+    const hidePolygonNameOverlay = () => PolygonNameOverlay.style.display = 'none'
+    const hideBillboardNameOverlay = () => BillboardNameOverlay.style.display = 'none'
+    const hideNameOverlay = () => {hidePolygonNameOverlay();hideBillboardNameOverlay(); }
+  }
+
+  // 重置高亮的实体
+  highlightReset = () => {
+    if (Cesium.defined(this.highlighted.feature)) {
+      this.highlighted.feature.polygon.material.color = this.highlighted.originalColor
+      this.highlighted.feature = undefined
+    }
+  }
+  // 高亮实体
+  highlightedEntity = entity => {
+    this.highlighted.feature = entity
+    Cesium.Color.clone(entity.polygon.material.color.getValue(this.viewer.clock.currentTime), this.highlighted.originalColor)
+    entity.polygon.material.color.setValue(Cesium.Color.YELLOW.withAlpha(this.highlightEntityAlpha))
+  }
+
+  // nameOverlay default style
+  defaultNameOverlayStyle (nameOverlay) {
+    nameOverlay.className = ' iez-nameOverlay'
+    nameOverlay.style.display = 'none'
+    nameOverlay.style.position = 'absolute'
+    nameOverlay.style.bottom = '0'
+    nameOverlay.style.left = '0'
+    nameOverlay.style['pointer-events'] = 'none'
+    nameOverlay.style.padding = '4px'
+    // nameOverlay.style.backgroundColor = 'green'
+    nameOverlay.style.color = 'white'
+  }
+
+  // change nameOverlay style on mouse hover entities
+  updateNameOverlayStyle (nameOverlay, movement) {
+    nameOverlay.style.display = 'block'
+    nameOverlay.style.bottom = this.viewer.canvas.clientHeight - movement.endPosition.y + 'px'
+    nameOverlay.style.left = movement.endPosition.x + 'px'
+  }
+
+  pickObject (callBack, eventType) {
+    this.handler.setInputAction(movement => {
+      if (this.scene.mode !== Cesium.SceneMode.MORPHING) {
+        const pickedObject = this.scene.pick(movement.endPosition)
+        if (this.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
+          callBack(pickedObject, movement)
+        }
+      }
+    }, eventType)
+  }
+
+  // 选中Polygon 支持
+  selectedSupport () {
+    this.pickObject((pickedObject, leftClick) => {
+      const pickEntity = Cesium.defaultValue(pickedObject.id, pickedObject.primitive.id)
+      if (pickEntity instanceof Cesium.Entity && pickEntity.polygon) {
+        this.highlightReset()
+        this.highlightedEntity(pickEntity)
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+  }
 }
