@@ -3,7 +3,7 @@
     <div class="dialog-wrap " id="mymark">
         <div >
             <div>
-                <Button type="primary" ghost>添加标记</Button>
+                <Button type="primary" ghost @click="">添加标记</Button>
                 <Button type="error" ghost>保存文件</Button>
             </div>
             <div style="margin-top: 8px">
@@ -32,6 +32,7 @@
 
 <script>
   import { mapActions } from 'vuex'
+  import {eventBus} from '../../eventbus/EventBus'
   export default {
     name: 'MyMark',
     data(){
@@ -48,10 +49,7 @@
       ...mapActions({
         isShow: 'increment' // 将 `this.add()` 映射为 `this.$store.dispatch('increment')`
       }),
-      closeDialog:function(){
-        //this.isvisible=!this.isvisible;
-        // easyDialog.close();
-      }
+
 
     },
   }

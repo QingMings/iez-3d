@@ -2,10 +2,10 @@
     <div class="dialog-wrap "  id="measure" >
     <div>
     <div>
-        <Button type="primary" ghost @click="ClickLang">长度</Button>
+        <Button type="primary" ghost @click="ClickLine">长度</Button>
         <Button type="primary" ghost @click="ClickArea">面积</Button>
         <Button type="primary" ghost @click="ClickHigh">高度</Button>
-        <Button type="error" ghost>清除</Button>
+        <Button type="error" ghost @click="ClickClear">清除</Button>
     </div>
     </div>
     </div>
@@ -13,6 +13,7 @@
 
 <script>
   import {eventBus} from '../../eventbus/EventBus'
+  import {MeasureType, ToolsEvent} from '../../../iez3d/eventhandler/ToolCaseEventHandler'
  // var defaultList;
   export default {
     name: 'Measure',
@@ -26,11 +27,16 @@
 
       methods: {
         ClickHigh:function(){
-            eventBus.$emit('startmeasure');
+           eventBus.$emit(ToolsEvent.Measure,MeasureType.High);
         },
         ClickArea:function(){
+          eventBus.$emit(ToolsEvent.Measure,MeasureType.Area);
         },
-        ClickLang:function(){
+        ClickLine:function(){
+          eventBus.$emit(ToolsEvent.Measure,MeasureType.Line);
+        },
+        ClickClear:function(){
+          eventBus.$emit(ToolsEvent.Measure,MeasureType.Clear);
         },
        },
   }
