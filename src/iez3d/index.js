@@ -11,6 +11,8 @@ import {error, info} from '../utils/util'
 import LayerManagerEventHandler from './eventhandler/LayerManagerEventHandler'
 import {Event} from '../utils/constant'
 import FileSaver from 'file-saver'
+import ToolCaseEventHandler from './eventhandler/ToolCaseEventHandler'
+import SettingEventHandler from './eventhandler/SettingEventHandler'
 
 
 
@@ -50,6 +52,9 @@ iez3d.prototype.init = function (options) {
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
+  // this.viewer.terrainProvider =Cesium.createWorldTerrain();
+  // this.scene.globe.depthTestAgainstTerrain = true
+
   // this.drawTool = new Cesium.DrawTool({
   //     contextObj: this.viewer,
   //     useMea: true,
@@ -81,7 +86,7 @@ iez3d.prototype.init = function (options) {
   }
   // 扩展 cesium toolbar 对象
   this.extendCesiumToolBar()
-  console.info(this.imageryLayers)
+  // console.info(this.imageryLayers)
   // this.addTdtImgAnnoLayer()
   this.baseLayerPicker()
   this.eventHandler()
@@ -240,6 +245,16 @@ iez3d.prototype.test = function (url, height) {
 iez3d.prototype.eventHandler = function () {
   this.layerManager()
   this.screenshotsSupport()
+  this.toolCaseSupport()
+  this.settingsSupport()
+}
+// 常用工具事件处理
+iez3d.prototype.toolCaseSupport = function () {
+  this.toolcase = new ToolCaseEventHandler(this)
+}
+// 设置 事件处理程序
+iez3d.prototype.settingsSupport = function () {
+  this.settings = new SettingEventHandler(this)
 }
 // 场景截图事件监听
 iez3d.prototype.screenshotsSupport = function () {

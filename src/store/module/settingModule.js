@@ -1,10 +1,19 @@
+import {eventBus} from '../../components/eventbus/EventBus'
+import {SettingEvent} from '../../iez3d/eventhandler/SettingEventHandler'
 export default {
   namespaced: true,
   state: {
     settings: {
-      hotPointMark: true,
-      buildMark: true
+      // 是否开启地形
+      enableTerrain: false
     }
+  },
+  mutations: {
+    enableTerrain (state, status) {
+      state.settings.enableTerrain = status
+      eventBus.$emit(SettingEvent.enableTerrain,status)
+    }
+
   },
   getters: {
     /**
@@ -14,12 +23,14 @@ export default {
      *
      */
     getSettingByIndex: (state) => (index) => {
-      if (index === 0) {
-        return state.settings.hotPointMark
-      } else if (index === 1) {
-        return state.settings.buildMark
+      switch (index) {
+        case 0:
+          return state.settings.enableTerrain
       }
     }
+  },
+  actions: {
+
   }
 
 }
