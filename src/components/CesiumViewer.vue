@@ -36,6 +36,8 @@ export default {
         timeline: false,
         baseLayerPicker: false,
         animation: false,
+        infoBox: false,
+        selectionIndicator: false,
         geocoder: new LocalGeocoder(),
         contextOptions: {
           webgl: {

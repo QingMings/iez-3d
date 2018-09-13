@@ -406,7 +406,7 @@ export default class LayerManagerEventHandler {
   pickObject (callBack, eventType) {
     this.handler.setInputAction(movement => {
       if (this.scene.mode !== Cesium.SceneMode.MORPHING) {
-        const pickedObject = this.scene.pick(movement.endPosition)
+        const pickedObject = this.scene.pick(eventType == Cesium.ScreenSpaceEventType.LEFT_CLICK? movement.position: movement.endPosition)
         if (this.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
           callBack(pickedObject, movement)
         }
