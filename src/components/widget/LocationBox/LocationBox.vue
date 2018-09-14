@@ -23,8 +23,8 @@ export default {
 
 <style scoped lang="less">
     #locationBox {
-        left: 2px;
-        bottom: 2px;
+        left: 170px;
+        bottom: 27px;
         position: absolute;
         z-index: 99;
         padding: 3px 10px;

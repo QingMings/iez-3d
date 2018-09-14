@@ -52,6 +52,7 @@ iez3d.prototype.init = function (options) {
   this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
   this.imageryLayers = this.viewer.imageryLayers
   this.eventbus = eventBus
+
   // this.viewer.terrainProvider =Cesium.createWorldTerrain();
   // this.scene.globe.depthTestAgainstTerrain = true
 
@@ -75,7 +76,6 @@ iez3d.prototype.init = function (options) {
   // 导航插件
   if (Cesium.defined(options.naviOptions)) {
     iezNavi(this.viewer, options.naviOptions)
-    this.showLatLonHeightProprety()
   }
   // 持有 CesiumViewer.vue 组件对象
   if (Cesium.defined(options.debug) && options.debug === true) {
@@ -154,42 +154,6 @@ iez3d.prototype.baseLayerPicker = function () {
     globe: this.scene.globe,
     imageryProviderViewModels: imageryViewModels
   })
-}
-/**
- * @time: 2018/8/27下午2:24
- * @author:QingMings(1821063757@qq.com)
- * @desc: 显示经纬度和高度信息
- *
- */
-iez3d.prototype.showLatLonHeightProprety = function () {
-  this.handler.setInputAction((movement) => {
-    const scene = this.scene
-    if (scene.mode !== Cesium.SceneMode.MORPHING) {
-      const pickedObject = scene.pick(movement.endPosition)
-      if (scene.pickPositionSupported && Cesium.defined(pickedObject)) {
-        // 在模型上显示
-        const cartesian = scene.pickPosition(movement.endPosition)
-        if (Cesium.defined(cartesian)) {
-          const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
-          const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
-          const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
-          const heightStr = cartographic.height.toFixed(2)
-          this.eventbus.$emit('updateLatLon', `经度：${longStr} 纬度：${latStr} 高度：${heightStr}米`)
-        }
-      } else {
-        // 再球上显示经纬度
-        const cartesian = this.camera.pickEllipsoid(movement.endPosition, scene.globe.ellipsoid)
-        if (cartesian) {
-          const cartographic = this.scene.globe.ellipsoid.cartesianToCartographic(cartesian)
-          const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
-          const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
-          this.eventbus.$emit('updateLatLon', `经度：${longStr} 纬度：${latStr}`)
-        } else {
-          this.eventbus.$emit('updateLatLon', '')
-        }
-      }
-    }
-  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
 }
 
 /**

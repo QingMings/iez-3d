@@ -6,9 +6,8 @@ import Cesium from 'cesium/Cesium'
  *@desc: 实体geoCoder查询, 使用时需要 传入 viewer 和 需要匹配的数组
  *
  */
-const LocalGeocoder = function () {
-  this.viewer
-  this.array = []
+function LocalGeocoder () {
+
 }
 /**
  *@time: 2018/8/13下午5:35
@@ -32,6 +31,8 @@ LocalGeocoder.prototype.geocode = function (entityId) {
       destination: endPosition
     }
   })
+  const deferred = Cesium.when.defer()
+  return deferred.resolve(result)
 }
 
 /**
@@ -53,7 +54,15 @@ function regexMatch (literalString, targetArr) {
   return matchBin
 }
 
-var viewer
-var array = []
+let viewer
+let array = []
+// 合并实体数据
+export  const publishData = data => {
+  array =array.concat(data)
+}
+// geocoder 传入 viewer 对象
+export const initViewer = mviewer => {
+  viewer = mviewer
+}
 
 export default LocalGeocoder

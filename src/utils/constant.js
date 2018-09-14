@@ -16,7 +16,9 @@ const Event = {
   // ZoomTo 事件
   ZoomToData: 'zoomToData',
   // screenshots 截图
-  ScreenShots: 'screenShots'
+  ScreenShots: 'screenShots',
+  // 更新LocationBox
+  UpdateLatLon: 'updateLatLon'
 }
 // 子数据类型
 const SubDataType={

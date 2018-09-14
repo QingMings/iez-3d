@@ -4,6 +4,7 @@ import Vue from 'vue'
 import {getImageLayers, getModelLayers, getSubData, getSubDatas, localLayers} from '../layers/localLayers'
 import {isMobile, subDataGen} from '../../utils/util'
 import JsonDataSource from '../JsonDataSource'
+import {initViewer, publishData} from '../../utils/LocalGeocoder'
 
 /**
  * @time: 2018/9/11下午4:55
@@ -19,15 +20,17 @@ export default class LayerManagerEventHandler {
     this.viewer = iez3d.viewer
     this.camera = iez3d.camera
     this.scene = iez3d.scene
-    this.handler = iez3d.handler
+    // 单独新建 eventHandler
+    this.handler = new Cesium.ScreenSpaceEventHandler(this.scene.canvas)
     this.eventbus = iez3d.eventbus
     this.iez3d = iez3d
     this.defaultEntityAlpha = 0.005
     this.highlightEntityAlpha = 0.5
-
     this.init()
     this.highlightSupport()
     this.selectedSupport()
+    initViewer(this.viewer)
+
   }
 
   // 初始化 事件监听
@@ -138,6 +141,7 @@ export default class LayerManagerEventHandler {
     }
 
   }
+  // 加载子数据流程处理
   loadSubDataProcess = ({node, parent}) => {
     const modalLayer = getModelLayers(parent)
     if (modalLayer.length > 0) {
@@ -167,6 +171,7 @@ export default class LayerManagerEventHandler {
                       disableDepthTestDistance: Number.POSITIVE_INFINITY
                     }
                   })
+                  publishData(entitys)
                   return Cesium.when(dataSource)
                 }).then(dataSource => {
                   // console.info(dataSource.entities.values.length)
@@ -212,6 +217,9 @@ export default class LayerManagerEventHandler {
       } else {
         this.add3DTileSet(target.serviceUrl, tileSet => {
           localLayers.modelLayers.push({title: target.title, primitive: tileSet})
+          if (Cesium.defined(target.offsetHeight)) {
+            this.modalOffsetHeight(tileSet,target.offsetHeight)
+          }
           this.scene.primitives.add(tileSet)
           if (isFlyTo) this.viewer.flyTo(tileSet)
           resolve()
@@ -256,7 +264,14 @@ export default class LayerManagerEventHandler {
         break
     }
   }
-
+  // 模型高度 改变
+  modalOffsetHeight(tileSet,offsetHeight) {
+    const cartographic = Cesium.Cartographic.fromCartesian(tileSet.boundingSphere.center);
+    const surface = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, 0.0);
+    const offset = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, Number(offsetHeight));
+    const translation = Cesium.Cartesian3.subtract(offset, surface, new Cesium.Cartesian3());
+    tileSet.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
+  }
   /**
    * @time: 2018/8/30下午1:44
    * @author:QingMings(1821063757@qq.com)
@@ -338,6 +353,7 @@ export default class LayerManagerEventHandler {
 
     this.handler.setInputAction(movement => {
       if (this.scene.mode !== Cesium.SceneMode.MORPHING) {
+        this.locationReportSupport(movement)
         const pickedObject = this.scene.pick(movement.endPosition)
         if (this.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
           const pickEntity = Cesium.defaultValue(pickedObject.id, pickedObject.primitive.id)
@@ -364,8 +380,8 @@ export default class LayerManagerEventHandler {
         }
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
-    const hidePolygonNameOverlay = () => PolygonNameOverlay.style.display = 'none'
-    const hideBillboardNameOverlay = () => BillboardNameOverlay.style.display = 'none'
+    const hidePolygonNameOverlay = () => PolygonNameOverlay.style.display = 'none';
+    const hideBillboardNameOverlay = () => BillboardNameOverlay.style.display = 'none';
     const hideNameOverlay = () => {hidePolygonNameOverlay();hideBillboardNameOverlay(); }
   }
 
@@ -423,5 +439,32 @@ export default class LayerManagerEventHandler {
         this.highlightedEntity(pickEntity)
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+  }
+  // locationBox 文字更新
+  locationReportSupport(movement) {
+    const scene = this.scene
+    const pickedObject = scene.pick(movement.endPosition)
+    if (scene.pickPositionSupported && Cesium.defined(pickedObject)) {
+      // 在模型上显示
+      const cartesian = scene.pickPosition(movement.endPosition)
+      if (Cesium.defined(cartesian)) {
+        const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
+        const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
+        const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
+        const heightStr = cartographic.height.toFixed(2)
+        this.eventbus.$emit(Event.UpdateLatLon, `经度：${longStr} 纬度：${latStr} 高度：${heightStr}米`)
+      }
+    } else {
+      // 再球上显示经纬度
+      const cartesian = this.camera.pickEllipsoid(movement.endPosition, scene.globe.ellipsoid)
+      if (cartesian) {
+        const cartographic = this.scene.globe.ellipsoid.cartesianToCartographic(cartesian)
+        const longStr = Cesium.Math.toDegrees(cartographic.longitude).toFixed(8)
+        const latStr = Cesium.Math.toDegrees(cartographic.latitude).toFixed(8)
+        this.eventbus.$emit(Event.UpdateLatLon, `经度：${longStr} 纬度：${latStr}`)
+      } else {
+        this.eventbus.$emit(Event.UpdateLatLon, '')
+      }
+    }
   }
 }

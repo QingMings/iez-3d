@@ -22,7 +22,7 @@ export default {
   },
   created () {
     // 测试 api 是否引用成功
-    console.info(`测试引入配置文件${JSON.stringify(api)}`)
+    // console.info(`测试引入配置文件${JSON.stringify(api)}`)
   },
   data () {
     return {}
@@ -33,9 +33,9 @@ export default {
       debug: true,
       vue: this,
       viewerOptions: {
-        timeline: false,
+        timeline: true,
         baseLayerPicker: false,
-        animation: false,
+        animation: true,
         infoBox: false,
         selectionIndicator: false,
         geocoder: new LocalGeocoder(),
